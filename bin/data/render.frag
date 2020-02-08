@@ -3,10 +3,7 @@
 // dolson,2019
 
 precision mediump float;
-precision mediump sampler2D;
-
-out vec4 out_FragColor;
-varying vec2 uVu; 
+precision mediump sampler2D; 
 
 uniform float u_hash;
 
@@ -25,10 +22,10 @@ uniform sampler2D u_noise_tex;
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
 const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
-const float hash = .5125094;
+const float nhash = .5125094;
 
 float hash(float x) {
-    return fract(sin(x) * hash * 43758.5453); 
+    return fract(sin(x) * nhash * 43758.5453); 
 }
 
 /*
@@ -52,7 +49,7 @@ vec3 hash3(vec3 x) {
              dot(x,vec3(122.34,109.0,592.0)),
              dot(x,vec3(67.0,322.4364,1235.0)));
 
-    return fract(sin(x) * 92352.3635 * hash);
+    return fract(sin(x) * 92352.3635 * nhash);
 }
  
 float cell(vec3 x,float iterations,int type) {
@@ -138,7 +135,7 @@ float noise(vec3 x) {
                    mix(hash(p + vec3(0.0,1.0,1.0)),hash(p + vec3(1.0,1.0,1.0)),f.x),f.y),f.z);
 } */
 
-float fractal(vec3 x,int octaves,float h) {
+float fractal(vec3 x,float h) {
 
     float t = 0.0;
 
@@ -147,7 +144,7 @@ float fractal(vec3 x,int octaves,float h) {
     float a = 0.5;
     float f = 1.0;
 
-    for(int i = 0; i < octaves; i++) {
+    for(int i = 0; i < 5; i++) {
  
     t += a * noise(f * x); 
     f *= 2.0; 
@@ -271,12 +268,6 @@ vec3 repeat(vec3 p,vec3 s) {
    
     vec3 q = mod(p,s) - 0.5 * s;
     return q;
-}
-
-vec3 pmod(inout vec3 p,vec3 s) {
-    vec3 c = floor(( p + s * 0.5 ) / s );
-    p = mod(p + s * 0.5,s ) - s * 0.5;
-    return c;
 }
 
 float refx(vec3 p) {
@@ -674,8 +665,8 @@ float nl = noise(vec3(5.));
 if(d.y >= 1.) {
 fres = 2.;
 
-    ns = smoothstep(noise(vec3(95.)  ),1. ,fractal(p,5,.5  ));
-        ns += fractal(p+fractal(p,5,.5),5,.5); 
+    ns = smoothstep(noise(vec3(95.)  ),1. ,fractal(p,.5  ));
+        ns += fractal(p+fractal(p,.5),.5); 
          
 
         col = fmCol(p.y+ns,vec3(hash(10.),hash(33.),hash(100.)),
@@ -723,22 +714,18 @@ vec3 cam_pos = vec3(2.0,-2.,2.5);
 
 //vec2 mo = vec2(u_mouse);
 
-mat4 mxr = rotAxis(vec3(1.0,0.0,0.0),PI*2.0*mo.y);
-mat4 myr = rotAxis(vec3(0.0,1.0,0.0),PI*2.0*mo.x);
+//mat4 mxr = rotAxis(vec3(1.0,0.0,0.0),PI*2.0*mo.y);
+//mat4 myr = rotAxis(vec3(0.0,1.0,0.0),PI*2.0*mo.x);
 //cam_pos = (vec4(cam_pos,1.0)*mxr*myr).xyz;
 
-mat4 cam_rot = rotAxis(vec3(0.0,1.,0.0),u_time * 0.000005);
+//mat4 cam_rot = rotAxis(vec3(0.0,1.,0.0),u_time * 0.000005);
 //cam_pos = (vec4(cam_pos,1.0) * cam_rot).xyz;
 
-vec2 uvu = -1.0 + 2.0 * uVu.xy;
-uvu.x *= u_resolution.x/u_resolution.y; 
+vec2 uvu = -1.0 + 2.0 * gl_FragCoord.xy / u_resolution.xy; 
 
 vec3 direction = rayCamDir(uvu,cam_pos,cam_target,1.);
 vec3 color = render(cam_pos,direction);
 
-//vec3 color = vec3(.5);
-//vec4 color = texelFetch(u_noise_tex,ivec2(0,0),0);
-
-out_FragColor = vec4(color,1.0);
+gl_FragColor = vec4(color,1.0);
 
 }

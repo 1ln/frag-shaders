@@ -1,9 +1,8 @@
-
-varying vec2 uVu;
+uniform mat4 modelViewProjectionMatrix;
+varying vec4 position;
 
 void main() {
 
-uVu = uv;
-gl_Position = vec4(position,1.0);
+gl_Position = modelViewProjectionMatrix * position;
 
 }
