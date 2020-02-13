@@ -25,7 +25,7 @@ float hash21(vec2 p) {
     return fract(sin(dot(p.xy,vec2(12.9898,78.233))) * 43758.5453123);
 }
   
-
+/*
 float cell(vec2 x,float iterations,int type) {
  
     x *= iterations;
@@ -64,6 +64,7 @@ float cell(vec2 x,float iterations,int type) {
     return min_dist;  
 
 }
+*/
 
 float noise(vec2 x) {
 
@@ -81,7 +82,7 @@ return mix(mix(hash(n + 0.),
 }
 
 
-float fractional(vec2 x,float h) {
+float f(vec2 x,float h) {
 
     float t = 0.0;
 
@@ -138,7 +139,24 @@ vec2 uv = gl_FragCoord.xy / u_resolution.xy;
 uv.x *= u_resolution.x / u_resolution.y;
 
 vec3 col = vec3(0.0);
-col += fractional(uv * 10.,.5);
+
+
+
+
+
+
+
+//col += f(uv ,.5);
+col += f(uv + f(uv,.5),.5);
+
+
+
+
+
+
+
+
+
 
 gl_FragColor = vec4(col,1.0);
 
