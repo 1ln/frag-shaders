@@ -3,9 +3,8 @@
 
 int main() {
 
-ofGLESWindowSettings settings;
-
-settings.glesVersion = 2;
+ofGLWindowSettings settings;
+settings.setGLVersion(3,2);
 
 ofCreateWindow(settings);
 

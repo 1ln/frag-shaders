@@ -1,8 +1,13 @@
+#version 150
+
+
 //Signed Distance with raymarching
 
 // dolson,2019
 
 precision mediump float;
+
+out vec4 outColor;
 
 uniform float u_hash;
 
@@ -140,24 +145,9 @@ uv.x *= u_resolution.x / u_resolution.y;
 
 vec3 col = vec3(0.0);
 
-
-
-
-
-
-
 //col += f(uv ,.5);
 col += f(uv + f(uv,.5),.5);
 
-
-
-
-
-
-
-
-
-
-gl_FragColor = vec4(col,1.0);
+outColor = vec4(col,1.0);
 
 }
