@@ -4,8 +4,8 @@ void ofApp::setup() {
 
 shader.load("render.vert","render.frag");
 
-w = 512;
-h = 512;
+w = ofGetWidth();
+h = ofGetHeight();
 
 }
 
@@ -13,8 +13,8 @@ void ofApp::draw() {
 
 shader.begin();
 
-shader.setUniform1f("u_time",ofGetElapsedTimef());
-shader.setUniform2f("u_resolution",w,h);
+shader.setUniform1f("u_time",ofGetElapsedTimeMillis());
+shader.setUniform2f("u_res",w,h);
 
 ofDrawRectangle(0,0,w,h);
 
