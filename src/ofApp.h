@@ -14,7 +14,10 @@ class ofApp : public ofBaseApp {
     void mouseMoved(int x,int y);   
     void mousePressed(int x, int y,int button);
     void mouseReleased(int x,int y,int button);
-        
+ 
+    int w;
+    int h;
+       
     ofEasyCam cam;
 
     ofFbo buf;
