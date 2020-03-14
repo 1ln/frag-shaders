@@ -600,17 +600,32 @@ return col;
 
 void main() {
  
+vec3 out_color = vec3(0.);
+int aa = 1;
+
 vec3 cam_target = vec3(0.0);
 vec3 cam_pos = vec3(1,.0,-5.);
 cam_pos.xz *= rot2(u_time * 0.0001);
 
-vec2 uv = gl_FragCoord.xy / u_res.xy;
-uv = uv * 2. - vec2(1.); 
-uv.x *= u_res.x/u_res.y; 
+for(int k = 0; k < aa; k++ ) {
 
-vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.);
-vec3 color = render(cam_pos,direction);
+   for(int l = 0; l < aa; l++) {
+   
+       vec2 o = vec2(float(k),float(l)) / float(aa) * .5;
 
-out_FragColor = vec4(color,1.0);
+       vec2 uv = (gl_FragCoord.xy+o) / u_res.xy;
+       uv = uv * 2. - vec2(1.); 
+       uv.x *= u_res.x/u_res.y; 
+
+       vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
+       vec3 color = render(cam_pos,direction);
+       out_color += color;  
+
+   }
+
+   out_color /= float(aa*aa);      
+   out_FragColor = vec4(out_color,1.0);
+ 
+}
 
 }
