@@ -95,18 +95,18 @@ vec2 rayScene(vec3 ro,vec3 rd) {
     float depth = 0.0;
     float d = -1.0;
 
-    for(int i = 0; i < 64; i++) {
+    for(int i = 0; i < 256; i++) {
 
         vec3 p = ro + depth * rd;
         vec2 dist = scene(p);
    
-        if(abs( dist.x) < 0.001 || 500. <  dist.x ) { break; }
+        if(abs( dist.x) < 0.0001 || 150. <  dist.x ) { break; }
         depth += dist.x;
         d = dist.y;
 
         }
  
-        if(500. < depth) { d = -1.0; }
+        if(150. < depth) { d = -1.0; }
         return vec2(depth,d);
 
 }
@@ -194,7 +194,8 @@ fres = 10.;
     
 } else {
 
-    col = vec3(0.0);
+    fres = 1.;
+    col = vec3(1.0);
 
 }
 
@@ -227,7 +228,7 @@ vec2 uv = gl_FragCoord.xy / u_res.xy;
 uv = uv * 2. - vec2(1.);
 uv.x *= u_res.x/u_res.y; 
 
-vec3 direction = rayCamDir(uvu,cam_pos,cam_target,1.);
+vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.);
 vec3 color = render(cam_pos,direction);
 
 out_FragColor = vec4(color,1.0);
