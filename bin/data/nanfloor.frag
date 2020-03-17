@@ -8,7 +8,7 @@ out vec4 out_FragColor;
 
 uniform vec2 u_res;
 uniform float u_time;
-uniform float u_cam_pos;
+uniform vec3 u_cam_pos;
 
 //uniform sampler2D u_noise_tex;
 
@@ -349,7 +349,7 @@ float box(vec3 p,vec3 b) {
     return length(max(d,0.0)) + min(max(d.x,max(d.y,d.z)),0.0);
 }
 
-float roundBox(vec3 p,vec3 b,float r) {
+float roundbox(vec3 p,vec3 b,float r) {
 
     vec3 q = abs(p) - b;
     return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - r;
@@ -420,9 +420,8 @@ vec3 q = vec3(p);
 
 q = repeatLimit(p,5.,vec3(0.,1.,0.));
 
-res = opu(res,vec2(plane(p,vec4(0.,1.,0.,0.))),1.);
-res = opu(res,vec2(smod(sphere(q,1.),box(q,vec3(.5)),.5)),2.);
-res = opu(res,vec2(octagon(p,1.)),3.);
+res = opu(res,vec2(plane(p,vec4(0.,1.,0.,0.)),1.));
+res = opu(res,vec2(smod(sphere(q+vec3(0.,1.5,0.)  ,1.5),roundbox(q,vec3(.5)),.05),2.));
 
 
 return res;
@@ -606,7 +605,7 @@ vec3 out_color = vec3(0.);
 int aa = 1;
 
 vec3 cam_target = vec3(0.0);
-vec3 cam_pos = vec3(1,.0,-5.);
+vec3 cam_pos = vec3(.15,25.,-8.0);
 cam_pos = u_cam_pos;
 
 for(int k = 0; k < aa; k++ ) {
