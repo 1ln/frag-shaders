@@ -418,10 +418,9 @@ vec2 res = vec2(1.0,0.0);
 
 vec3 q = vec3(p);
 
-q = repeatLimit(p,5.,vec3(5.,5.,0.));
+q = repeatLimit(p,5.,vec3(2.));
 
-res = opu(res,vec2(plane(p,vec4(0.,0.,1.,0.)),1.));
-res = opu(res,vec2(smod(sphere(q-vec3(0.,0.,PHI)  ,1.25),roundbox(q,vec3(1.),.5),.5),2.));
+res = opu(res,vec2(box(q,vec3(.5)),2.));
 
 return res;
 
@@ -437,7 +436,7 @@ vec2 rayScene(vec3 ro,vec3 rd) {
         vec3 p = ro + depth * rd;
         vec2 dist = scene(p);
    
-        if(abs( dist.x) < 0. || 2500. <  dist.x ) { break; }
+        if(abs( dist.x) < 0.0001 || 2500. <  dist.x ) { break; }
         depth += dist.x;
         d = dist.y;
 
@@ -456,18 +455,17 @@ vec3 fog(vec3 c,vec3 fc,float b,float distance) {
 float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
 
     float depth = dmin;
-    float d = -1.0;
+    float h = 0.;
 
-    for(int i = 0; i < 5; i++ ) {
-        float h = scene(ro + rd * depth).x;
+    for(int i = 0; i < 100; i++ ) {
+        h = scene(ro + rd * depth).x;
 
-        if(h < 0.0001   ) { return depth; }
+        if(abs( h) < 0.0001 || depth > dmax ) { break; }
         
         depth += h;
     }
-
-    if(dmax <= depth ) { return dmax; }
-    return dmax;
+    
+    return depth;
 }
 
 float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
@@ -520,15 +518,7 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
 
 vec3 light(vec3 ro,vec3 rd,vec3 n,vec3 l,vec2 d) {
 
-vec2 d = rayScene(ro, rd);
-
 if(d.y >= 0.) {
-
-vec3 p = ro + rd * d.x;
-vec3 n = calcNormal(p);
-vec3 l = vec3(0.,10.,100. );
-
-
 
 vec3 lig_dir = l - rd;
 float lig_dist = max(length(lig_dir),0.);
@@ -542,19 +532,18 @@ float spe = pow(max(dot(reflect(-lig_dir,n),-rd),0.),8.);
 vec3 col = vec3(0.,1.,0.);
 
 if(d.y >= 2.) {
-    col = fmCol(p.y,vec3(1.),
+   /* col = fmCol(col.x,vec3(1.),
                     vec3(.25),
                     vec3(.5),
                     vec3(1.));
+ */
+ //col = vec3(1.,0.,0.);
 } 
 
-col = (col * (dif + .5) + vec3(.5,1.,0.) * spe * 2.) * at;
+col = (col * (dif + .5) + vec3(.95,1.,.65) * spe * 2.) * at;
  
-}
-   
-//col = pow(col,vec3(.4545));
-
 return col;
+}
 }
 
 void main() {
@@ -564,6 +553,8 @@ int aa = 1;
 
 vec3 cam_target = vec3(0.0);
 vec3 cam_pos = vec3(.0,-45.,25.);
+cam_pos = u_cam_pos;
+
 vec3 lig_pos = vec3(0.,0.,100.);
 
 for(int k = 0; k < aa; k++ ) {
@@ -582,17 +573,18 @@ for(int k = 0; k < aa; k++ ) {
        
        cam_pos += direction * d.x;
        vec3 n = calcNormal(cam_pos);
+       
        vec3 color = light(cam_pos,direction,n,lig_pos,d);
        
        float sh = shadow(cam_pos,direction,0.,2.);
        direction = reflect(direction,n);
-       d.x += reflection(cam_pos + direction  * d.x,direction,0.,10.);
+       d.x += reflection(cam_pos + direction  * 0.001,direction,0.,5.);
        
-       cam_pos += direction * d.x;
+       cam_pos += direction  * d.x;
        n = calcNormal(cam_pos);
-              
+         
        color += light(cam_pos,direction,n,lig_pos,d);
-       color *= sh;
+       //color *= sh;
 
        color = pow(color,vec3(.4545)); 
        out_color += color;
@@ -600,7 +592,8 @@ for(int k = 0; k < aa; k++ ) {
 
    out_color /= float(aa*aa);      
    out_FragColor = vec4(out_color,1.0);
- 
+
+
 }
 
 }
