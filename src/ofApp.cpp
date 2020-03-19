@@ -2,7 +2,7 @@
 
 void ofApp::setup() {
 
-shader.load("render.vert","render.frag");
+shader.load("render.vert","nanfloor.frag");
 
 w = ofGetWidth();
 h = ofGetHeight();
