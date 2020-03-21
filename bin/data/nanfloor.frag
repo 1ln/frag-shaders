@@ -521,26 +521,21 @@ vec3 light(vec3 ro,vec3 rd,vec3 n,vec3 l,vec2 d) {
 if(d.y >= 0.) {
 
 vec3 lig_dir = l - rd;
-float lig_dist = max(length(lig_dir),0.);
-lig_dir /= lig_dir;
+float lig_dist = max(length(lig_dir),0.001 );
+lig_dir /= lig_dist;
 
 float at = 1. / (1. + lig_dist * .2 + lig_dist *lig_dist * .1 );  
 float dif = max(dot(n,lig_dir),0.0);
 
 float spe = pow(max(dot(reflect(-lig_dir,n),-rd),0.),8.);  
 
-vec3 col = vec3(0.,1.,0.);
+vec3 col = vec3(0.);
 
 if(d.y >= 2.) {
-   /* col = fmCol(col.x,vec3(1.),
-                    vec3(.25),
-                    vec3(.5),
-                    vec3(1.));
- */
- //col = vec3(1.,0.,0.);
+col = vec3(1.,0.,0.);
 } 
 
-col = (col * (dif + .5) + vec3(.95,1.,.65) * spe * 2.) * at;
+col = (col * (dif + .05) + vec3(1.,.55,.25) * spe * 2.) * at;
  
 return col;
 }
@@ -555,7 +550,7 @@ vec3 cam_target = vec3(0.0);
 vec3 cam_pos = vec3(.0,-45.,25.);
 cam_pos = u_cam_pos;
 
-vec3 lig_pos = vec3(0.,0.,100.);
+vec3 lig_pos = vec3(0.,0.,10.);
 
 for(int k = 0; k < aa; k++ ) {
 
@@ -578,7 +573,7 @@ for(int k = 0; k < aa; k++ ) {
        
        float sh = shadow(cam_pos,direction,0.,2.);
        direction = reflect(direction,n);
-       d.x += reflection(cam_pos + direction  * 0.001,direction,0.,5.);
+       d.x += reflection(cam_pos + direction  * 0.01,direction,0.,100.);
        
        cam_pos += direction  * d.x;
        n = calcNormal(cam_pos);
