@@ -418,10 +418,10 @@ vec2 res = vec2(1.0,0.0);
 
 vec3 q = vec3(p);
 
-//q = repeatLimit(p,5.,vec3(2.));
+//q = repeatLimit(p,2.,vec3(5.));
 
-res = opu(res,vec2(plane(p +vec3(0.,0.,.5),vec4(0.,0.,1.,0.)) ,1.)); 
-res = opu(res,vec2(box(q,vec3(.5)),2.));
+res = opu(res,vec2(plane(p +vec3(0.,0.,1.),vec4(0.,0.,1.,0.)) ,1.)); 
+res = opu(res,vec2(box(q,vec3(1.)),2.));
 
 return res;
 
@@ -540,6 +540,7 @@ col = vec3(.5);
 
 if(d.y >= 2.) {
 col = vec3(1.,0.,0.);
+
 } 
 
 col = (col * (dif + .05) + vec3(1.) * spe * 2.) * at;
@@ -558,6 +559,7 @@ vec3 cam_pos = vec3(.0,-45.,25.);
 cam_pos = u_cam_pos;
 
 vec3 lig_pos = vec3(5.,10.,10.);
+
 
 for(int k = 0; k < aa; k++ ) {
 
@@ -578,15 +580,15 @@ for(int k = 0; k < aa; k++ ) {
        
        vec3 color = light(cam_pos,direction,n,lig_pos,d);
        
-       float sh = shadow(cam_pos,normalize(lig_pos),0.,2.);
+       float sh = shadow(cam_pos,normalize(lig_pos),0.005,25.);
        direction = reflect(direction,n);
-       d.x += reflection(cam_pos + direction  * 0.01,direction,0.,25.);
+       d.x += reflection(cam_pos + direction  * 0.01,direction,0.0,25.);
        
        cam_pos += direction  * d.x;
        n = calcNormal(cam_pos);
          
        color += light(cam_pos,direction,n,lig_pos,d) * .25  ;
-       color *= sh;
+       color *= sh + d.x * .005;
 
        color = pow(color,vec3(.4545)); 
     
