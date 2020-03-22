@@ -418,8 +418,9 @@ vec2 res = vec2(1.0,0.0);
 
 vec3 q = vec3(p);
 
-q = repeatLimit(p,5.,vec3(2.));
+//q = repeatLimit(p,5.,vec3(2.));
 
+res = opu(res,vec2(plane(p +vec3(0.,0.,.5),vec4(0.,0.,1.,0.)) ,1.)); 
 res = opu(res,vec2(box(q,vec3(.5)),2.));
 
 return res;
@@ -474,14 +475,16 @@ float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
     float t = dmin;
     float ph = 1e10;
     
-    for(int i = 0; i < 6; i++ ) {
+    for(int i = 0; i < 50; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
-        float s = clamp(8.0*h/t,0.0,1.0);
-        res = min(res,s*s*(3.-2. *s ));         
-        t += clamp(h,0.02,0.1 );
-    
+        float y = h*h / (2. * ph);
+        float d = sqrt(h*h-y*y);         
+        res = min(res,10.*d/max(0.,t-y)); 
+        ph = h;
+        t += h;
+        
         if(res < 0.0 || t > dmax ) { break; }
 
         }
@@ -531,11 +534,15 @@ float spe = pow(max(dot(reflect(-lig_dir,n),-rd),0.),8.);
 
 vec3 col = vec3(0.);
 
+if(d.y >= 1.) {
+col = vec3(.5);
+}
+
 if(d.y >= 2.) {
 col = vec3(1.,0.,0.);
 } 
 
-col = (col * (dif + .05) + vec3(1.,.55,.25) * spe * 2.) * at;
+col = (col * (dif + .05) + vec3(1.) * spe * 2.) * at;
  
 return col;
 }
@@ -550,7 +557,7 @@ vec3 cam_target = vec3(0.0);
 vec3 cam_pos = vec3(.0,-45.,25.);
 cam_pos = u_cam_pos;
 
-vec3 lig_pos = vec3(0.,0.,10.);
+vec3 lig_pos = vec3(5.,10.,10.);
 
 for(int k = 0; k < aa; k++ ) {
 
@@ -571,17 +578,18 @@ for(int k = 0; k < aa; k++ ) {
        
        vec3 color = light(cam_pos,direction,n,lig_pos,d);
        
-       float sh = shadow(cam_pos,direction,0.,2.);
+       float sh = shadow(cam_pos,normalize(lig_pos),0.,2.);
        direction = reflect(direction,n);
-       d.x += reflection(cam_pos + direction  * 0.01,direction,0.,100.);
+       d.x += reflection(cam_pos + direction  * 0.01,direction,0.,25.);
        
        cam_pos += direction  * d.x;
        n = calcNormal(cam_pos);
          
-       color += light(cam_pos,direction,n,lig_pos,d);
-       //color *= sh;
+       color += light(cam_pos,direction,n,lig_pos,d) * .25  ;
+       color *= sh;
 
        color = pow(color,vec3(.4545)); 
+    
        out_color += color;
    }
 
