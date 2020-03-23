@@ -416,12 +416,14 @@ float t  = u_time;
 
 vec2 res = vec2(1.0,0.0);
 
-vec3 q = vec3(p);
+//vec3 q = vec3(p);
 
 //q = repeatLimit(p,2.,vec3(5.));
 
 res = opu(res,vec2(plane(p +vec3(0.,0.,1.),vec4(0.,0.,1.,0.)) ,1.)); 
-res = opu(res,vec2(box(q,vec3(1.)),2.));
+res = opu(res,vec2(smod(cylinder(p,1.,.5),box(p,vec3(1.)),.5),2.)   );
+
+res = opu(res,vec2(1.,0.));
 
 return res;
 
@@ -475,7 +477,7 @@ float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
     float t = dmin;
     float ph = 1e10;
     
-    for(int i = 0; i < 50; i++ ) {
+    for(int i = 0; i < 150; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
@@ -519,9 +521,7 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
      return vDir;
 }
 
-vec3 light(vec3 ro,vec3 rd,vec3 n,vec3 l,vec2 d) {
-
-if(d.y >= 0.) {
+vec3 light(vec3 ro,vec3 rd,vec3 n,vec3 l,vec2 d) { 
 
 vec3 lig_dir = l - rd;
 float lig_dist = max(length(lig_dir),0.001 );
@@ -532,21 +532,20 @@ float dif = max(dot(n,lig_dir),0.0);
 
 float spe = pow(max(dot(reflect(-lig_dir,n),-rd),0.),8.);  
 
-vec3 col = vec3(0.);
+vec3 col = vec3(1.);
 
-if(d.y >= 1.) {
-col = vec3(.5);
+if(d.y == 1.) {
+col = vec3(1.);
 }
 
-if(d.y >= 2.) {
+if(d.y == 2.) {
 col = vec3(1.,0.,0.);
+}
 
-} 
-
-col = (col * (dif + .05) + vec3(1.) * spe * 2.) * at;
+col = (col * (dif + 100.  ) + vec3(1.  ) * spe * 2.) * at;
  
 return col;
-}
+
 }
 
 void main() {
@@ -555,11 +554,11 @@ vec3 out_color = vec3(0.);
 int aa = 1;
 
 vec3 cam_target = vec3(0.0);
-vec3 cam_pos = vec3(.0,-45.,25.);
+vec3 cam_pos = vec3(.0);
+cam_pos = vec3(0.,-5.,.5);
 cam_pos = u_cam_pos;
 
 vec3 lig_pos = vec3(5.,10.,10.);
-
 
 for(int k = 0; k < aa; k++ ) {
 
@@ -574,15 +573,15 @@ for(int k = 0; k < aa; k++ ) {
        vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
 
        vec2 d = rayScene(cam_pos,direction);
-       
+
        cam_pos += direction * d.x;
        vec3 n = calcNormal(cam_pos);
        
        vec3 color = light(cam_pos,direction,n,lig_pos,d);
        
-       float sh = shadow(cam_pos,normalize(lig_pos),0.005,25.);
+       float sh = shadow(cam_pos,normalize(lig_pos),0.005,250.);
        direction = reflect(direction,n);
-       d.x += reflection(cam_pos + direction  * 0.01,direction,0.0,25.);
+       d.x += reflection(cam_pos + direction  * 0.01,direction,0.005,25.);
        
        cam_pos += direction  * d.x;
        n = calcNormal(cam_pos);
@@ -591,14 +590,13 @@ for(int k = 0; k < aa; k++ ) {
        color *= sh + d.x * .005;
 
        color = pow(color,vec3(.4545)); 
-    
        out_color += color;
+
    }
 
    out_color /= float(aa*aa);      
    out_FragColor = vec4(out_color,1.0);
-
-
-}
+   
+   }
 
 }
