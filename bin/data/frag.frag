@@ -411,19 +411,21 @@ float crossbox(vec3 p,float l,float d) {
 
 vec2 scene(vec3 p) { 
 
-float s  = 0.0001;
 float t  = u_time;
 
 vec2 res = vec2(1.0,0.0);
 
-//vec3 q = vec3(p);
+vec3 q = vec3(p);
 
-//q = repeatLimit(p,2.,vec3(5.));
+q += sin3(p,15.) * .025  ;
+q += noise(p) * .25 ;
 
-res = opu(res,vec2(plane(p +vec3(0.,0.,1.),vec4(0.,0.,1.,0.)) ,1.)); 
-res = opu(res,vec2(smod(cylinder(p,1.,.5),box(p,vec3(1.)),.5),2.)   );
+float s = smod(cylinder(q,1.,.5),sphere(p,1.),.5);
+float pl = plane(p,vec4(0.,1.,0.,0.));
 
-res = opu(res,vec2(1.,0.));
+res = opu(res,vec2(smou(s,pl,.5),1.));
+
+
 
 return res;
 
@@ -439,7 +441,7 @@ vec2 rayScene(vec3 ro,vec3 rd) {
         vec3 p = ro + depth * rd;
         vec2 dist = scene(p);
    
-        if(abs( dist.x) < 0.0001 || 2500. <  dist.x ) { break; }
+        if(abs( dist.x) < 0. || 2500. <  dist.x ) { break; }
         depth += dist.x;
         d = dist.y;
 
@@ -458,17 +460,18 @@ vec3 fog(vec3 c,vec3 fc,float b,float distance) {
 float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
 
     float depth = dmin;
-    float h = 0.;
+    float d = -1.0;
 
-    for(int i = 0; i < 100; i++ ) {
-        h = scene(ro + rd * depth).x;
+    for(int i = 0; i < 5; i++ ) {
+        float h = scene(ro + rd * depth).x;
 
-        if(abs( h) < 0.0001 || depth > dmax ) { break; }
+        if(h < 0.0001   ) { return depth; }
         
         depth += h;
     }
-    
-    return depth;
+
+    if(dmax <= depth ) { return dmax; }
+    return dmax;
 }
 
 float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
@@ -477,16 +480,14 @@ float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
     float t = dmin;
     float ph = 1e10;
     
-    for(int i = 0; i < 150; i++ ) {
+    for(int i = 0; i < 6; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
-        float y = h*h / (2. * ph);
-        float d = sqrt(h*h-y*y);         
-        res = min(res,10.*d/max(0.,t-y)); 
-        ph = h;
-        t += h;
-        
+        float s = clamp(8.0*h/t,0.0,1.0);
+        res = min(res,s*s*(3.-2. *s ));         
+        t += clamp(h,0.02,0.1 );
+    
         if(res < 0.0 || t > dmax ) { break; }
 
         }
@@ -521,31 +522,63 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
      return vDir;
 }
 
-vec3 light(vec3 ro,vec3 rd,vec3 n,vec3 l,vec2 d) { 
+vec3 render(vec3 ro,vec3 rd) {
 
-vec3 lig_dir = l - rd;
-float lig_dist = max(length(lig_dir),0.001 );
-lig_dir /= lig_dist;
+float t = u_time;
 
-float at = 1. / (1. + lig_dist * .2 + lig_dist *lig_dist * .1 );  
-float dif = max(dot(n,lig_dir),0.0);
+//vec3 col = vec3(.5,1.,) - max(rd.y+ns,0.); 
+vec2 d = rayScene(ro, rd);
 
-float spe = pow(max(dot(reflect(-lig_dir,n),-rd),0.),8.);  
+vec3 cf = vec3(0.);
+cf = fmCol(rd.z*1.5,vec3(1.,.5,1.),
+                   vec3(.21,.154,.29),
+                   vec3(.15,1.,.6),
+                   vec3(.35,1.,.09));                         
 
-vec3 col = vec3(1.);
+vec3 col = cf - max(rd.y,0.);
 
-if(d.y == 1.) {
-col = vec3(1.);
+if(d.y >= 0.) {
+
+vec3 p = ro + rd * d.x;
+vec3 n = calcNormal(p);
+vec3 l = normalize( vec3(0.,10.,100. ));
+vec3 h = normalize(l - rd);
+vec3 r = reflect(rd,n);
+float amb = sqrt(clamp(0.5 + 0.5 * n.y,0.0,1.0));
+float dif = clamp(dot(n,l),0.0,1.0);
+float spe = pow(clamp(dot(n,h),0.0,1.0),16.) * dif * (.04 + 0.9 * pow(clamp(1. + dot(h,rd),0.,1.),5.));
+float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
+float ref = smoothstep(-.2,.2,r.y);
+vec3 linear = vec3(0.);
+
+float ns = fractal(p/50. +fractal(p/50.,6,.5),4,noise(p/50. )  );
+
+dif *= shadow(p,l,.05,2.5);
+ref *= shadow(p,l,.05,2.5);
+
+linear += 1. * dif  * vec3(.5);
+linear += .5 * amb  * vec3(0.05);
+linear += .45 *  ref * vec3(.45,.45,.5);
+linear +=  fre * vec3(1.);
+
+col += .5 *  sin(vec3(.5,ns,.25 ) );
+
+if(d.y >= 2.) {
+    col = fmCol(p.y,vec3(1.),
+                    vec3(.25),
+                    vec3(.5),
+                    vec3(1.));
 }
 
-if(d.y == 2.) {
-col = vec3(1.,0.,0.);
-}
+col = col * linear;
+col += 5. * spe * vec3(1.,.5,.9);
+col = mix(col,cf,1. - exp(-0.0000001*d.x*d.x*d.x));
 
-col = (col * (dif + 100.  ) + vec3(1.  ) * spe * 2.) * at;
- 
+}
+   
+col = pow(col,vec3(.4545));
+
 return col;
-
 }
 
 void main() {
@@ -554,11 +587,8 @@ vec3 out_color = vec3(0.);
 int aa = 1;
 
 vec3 cam_target = vec3(0.0);
-vec3 cam_pos = vec3(.0);
-cam_pos = vec3(0.,-5.,.5);
+vec3 cam_pos = vec3(.0,-45.,25.);
 cam_pos = u_cam_pos;
-
-vec3 lig_pos = vec3(5.,10.,10.);
 
 for(int k = 0; k < aa; k++ ) {
 
@@ -571,32 +601,14 @@ for(int k = 0; k < aa; k++ ) {
        uv.x *= u_res.x/u_res.y; 
 
        vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
-
-       vec2 d = rayScene(cam_pos,direction);
-
-       cam_pos += direction * d.x;
-       vec3 n = calcNormal(cam_pos);
-       
-       vec3 color = light(cam_pos,direction,n,lig_pos,d);
-       
-       float sh = shadow(cam_pos,normalize(lig_pos),0.005,250.);
-       direction = reflect(direction,n);
-       d.x += reflection(cam_pos + direction  * 0.01,direction,0.005,25.);
-       
-       cam_pos += direction  * d.x;
-       n = calcNormal(cam_pos);
-         
-       color += light(cam_pos,direction,n,lig_pos,d) * .25  ;
-       color *= sh + d.x * .005;
-
-       color = pow(color,vec3(.4545)); 
-       out_color += color;
+       vec3 color = render(cam_pos,direction);
+       out_color += color;  
 
    }
 
    out_color /= float(aa*aa);      
    out_FragColor = vec4(out_color,1.0);
-   
-   }
+ 
+}
 
 }
