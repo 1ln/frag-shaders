@@ -8,7 +8,36 @@ out vec4 out_FragColor;
 
 uniform vec2 u_res;
 uniform float u_time;
+
+uniform int u_hash;
+
 uniform vec3 u_cam_pos;
+uniform vec3 u_cam_tar;
+
+uniform float u_eps;
+uniform float u_dist;
+uniform int u_steps;
+
+uniform float u_sh_eps;
+uniform float u_sh_dist;
+uniform int u_sh_steps;
+uniform float u_sh_k;
+
+uniform int u_aa;
+
+uniform vec3 u_light_pos;
+uniform float u_light_intensity;
+uniform int u_light_cam_attach;
+
+uniform vec3 u_dif;
+uniform vec3 u_amb;
+uniform vec3 u_spe;
+
+uniform int u_plane_disp;
+uniform vec3 u_plane_orient;
+uniform vec3 u_plane;
+
+ 
 
 //uniform sampler2D u_noise_tex;
 
@@ -418,12 +447,11 @@ vec2 res = vec2(1.0,0.0);
 vec3 q = vec3(p);
 
 q += sin3(p,15.) * .025  ;
+
 q += noise(p) * .25 ;
 
-float s = smod(cylinder(q,1.,.5),sphere(p,1.),.5);
-float pl = plane(p,vec4(0.,1.,0.,0.));
 
-res = opu(res,vec2(smou(s,pl,.5),1.));
+//res = opu(res,vec2(
 
 
 
@@ -436,18 +464,18 @@ vec2 rayScene(vec3 ro,vec3 rd) {
     float depth = 0.0;
     float d = -1.0;
 
-    for(int i = 0; i < 512; i++) {
+    for(int i = 0; i < u_steps; i++) {
 
         vec3 p = ro + depth * rd;
         vec2 dist = scene(p);
    
-        if(abs( dist.x) < 0. || 2500. <  dist.x ) { break; }
+        if(abs( dist.x) < u_eps || u_trace_dist <  dist.x ) { break; }
         depth += dist.x;
         d = dist.y;
 
         }
  
-        if(2500. < depth) { d = -1.0; }
+        if(u_trace_dist  < depth) { d = -1.0; }
         return vec2(depth,d);
 
 }
@@ -480,15 +508,17 @@ float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
     float t = dmin;
     float ph = 1e10;
     
-    for(int i = 0; i < 6; i++ ) {
+    for(int i = 0; i < u_sh_steps; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
-        float s = clamp(8.0*h/t,0.0,1.0);
-        res = min(res,s*s*(3.-2. *s ));         
-        t += clamp(h,0.02,0.1 );
+        float y = h * h / (2. * ph);
+        float d = sqrt(h*h-y*y);         
+        res = min(res,10.*d/max(0.,t-y));
+        ph = h;
+        t += h;
     
-        if(res < 0.0 || t > dmax ) { break; }
+        if(res < u_sh_eps || t > dmax ) { break; }
 
         }
 
@@ -498,7 +528,7 @@ float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
 
 vec3 calcNormal(vec3 p) {
 
-    vec2 e = vec2(1.0,-1.0) * 0.0001;
+    vec2 e = vec2(1.0,-1.0) * u_eps;
 
     return normalize(vec3(
     vec3(e.x,e.y,e.y) * scene(p + vec3(e.x,e.y,e.y)).x +
@@ -529,19 +559,14 @@ float t = u_time;
 //vec3 col = vec3(.5,1.,) - max(rd.y+ns,0.); 
 vec2 d = rayScene(ro, rd);
 
-vec3 cf = vec3(0.);
-cf = fmCol(rd.z*1.5,vec3(1.,.5,1.),
-                   vec3(.21,.154,.29),
-                   vec3(.15,1.,.6),
-                   vec3(.35,1.,.09));                         
-
+vec3 cf = vec3(0.);                         
 vec3 col = cf - max(rd.y,0.);
 
 if(d.y >= 0.) {
 
 vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
-vec3 l = normalize( vec3(0.,10.,100. ));
+vec3 l = normalize( u_light_pos );
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
 float amb = sqrt(clamp(0.5 + 0.5 * n.y,0.0,1.0));
@@ -551,8 +576,6 @@ float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
 float ref = smoothstep(-.2,.2,r.y);
 vec3 linear = vec3(0.);
 
-float ns = fractal(p/50. +fractal(p/50.,6,.5),4,noise(p/50. )  );
-
 dif *= shadow(p,l,.05,2.5);
 ref *= shadow(p,l,.05,2.5);
 
@@ -561,18 +584,10 @@ linear += .5 * amb  * vec3(0.05);
 linear += .45 *  ref * vec3(.45,.45,.5);
 linear +=  fre * vec3(1.);
 
-col += .5 *  sin(vec3(.5,ns,.25 ) );
-
-if(d.y >= 2.) {
-    col = fmCol(p.y,vec3(1.),
-                    vec3(.25),
-                    vec3(.5),
-                    vec3(1.));
-}
+col += .5 *  sin(vec3(.5,1.,.25 ) );
 
 col = col * linear;
 col += 5. * spe * vec3(1.,.5,.9);
-col = mix(col,cf,1. - exp(-0.0000001*d.x*d.x*d.x));
 
 }
    
@@ -584,10 +599,10 @@ return col;
 void main() {
  
 vec3 out_color = vec3(0.);
-int aa = 1;
+int aa = u_aa;
 
-vec3 cam_target = vec3(0.0);
-vec3 cam_pos = vec3(.0,-45.,25.);
+vec3 cam_target = u_cam_tar;
+vec3 cam_pos = vec3(.0);
 cam_pos = u_cam_pos;
 
 for(int k = 0; k < aa; k++ ) {
