@@ -9,7 +9,7 @@ out vec4 out_FragColor;
 uniform vec2 u_res;
 uniform float u_time;
 
-uniform int u_hash;
+uniform float u_hash;
 
 uniform vec3 u_cam_pos;
 uniform vec3 u_cam_tar;
@@ -18,26 +18,26 @@ uniform float u_eps;
 uniform float u_dist;
 uniform int u_steps;
 
-uniform float u_sh_eps;
-uniform float u_sh_dist;
-uniform int u_sh_steps;
-uniform float u_sh_k;
+uniform float u_shad_eps;
+uniform float u_shad_dist;
+uniform int u_shad_steps;
+uniform float u_shad_k;
+uniform float u_shad_min;
+uniform float u_shad_max;
 
 uniform int u_aa;
 
 uniform vec3 u_light_pos;
 uniform float u_light_intensity;
-uniform int u_light_cam_attach;
+uniform int u_light_cam;
 
 uniform vec3 u_dif;
 uniform vec3 u_amb;
 uniform vec3 u_spe;
 
-uniform int u_plane_disp;
+uniform int u_plane_display;
 uniform vec3 u_plane_orient;
-uniform vec3 u_plane;
-
- 
+uniform vec3 u_plane_offset;
 
 //uniform sampler2D u_noise_tex;
 
@@ -47,13 +47,13 @@ const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
 
 //15551*89491 = 1391674541
 float hash(float p) {
-    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0 *.6563);
+    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0 * u_hash);
     uint h = (n.x ^ n.y) * 1391674541U;
     return float(h) * (1.0/float(0xffffffffU));
 }
 
 vec3 hash3(vec3 p) {
-   uvec3 h = uvec3(ivec3(  p)) *  uvec3(1391674541U,2531151992.0 * .6563,2860486313U);
+   uvec3 h = uvec3(ivec3(  p)) *  uvec3(1391674541U,2531151992.0 * u_hash,2860486313U);
    h = (h.x ^ h.y ^ h.z) * uvec3(1391674541U,2531151992U,2860486313U);
    return vec3(h) * (1.0/float(0xffffffffU));
 
@@ -446,14 +446,11 @@ vec2 res = vec2(1.0,0.0);
 
 vec3 q = vec3(p);
 
-q += sin3(p,15.) * .025  ;
+if(u_plane_display == 1) {
+    res = opu(res,vec2(plane(p - u_plane_offset,vec4(u_plane_orient,1)),1.));
+}
 
-q += noise(p) * .25 ;
-
-
-//res = opu(res,vec2(
-
-
+res = opu(res,vec2(sphere(p,1.),2.));
 
 return res;
 
@@ -502,23 +499,23 @@ float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
     return dmax;
 }
 
-float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
+float shadow(vec3 ro,vec3 rd ) {
 
     float res = 1.0;
-    float t = dmin;
+    float t = u_shad_min;
     float ph = 1e10;
     
-    for(int i = 0; i < u_sh_steps; i++ ) {
+    for(int i = 0; i < u_shad_steps; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
         float y = h * h / (2. * ph);
         float d = sqrt(h*h-y*y);         
-        res = min(res,10.*d/max(0.,t-y));
+        res = min(res,u_shad_k * d/max(0.,t-y));
         ph = h;
         t += h;
     
-        if(res < u_sh_eps || t > dmax ) { break; }
+        if(res < u_shad_eps || t > u_shad_max ) { break; }
 
         }
 
@@ -576,8 +573,8 @@ float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
 float ref = smoothstep(-.2,.2,r.y);
 vec3 linear = vec3(0.);
 
-dif *= shadow(p,l,.05,2.5);
-ref *= shadow(p,l,.05,2.5);
+dif *= shadow(p,l);
+ref *= shadow(p,l);
 
 linear += 1. * dif  * vec3(.5);
 linear += .5 * amb  * vec3(0.05);
