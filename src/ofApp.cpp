@@ -31,12 +31,30 @@ cam.end();
 shader.begin();
 
 shader.setUniform1f("u_time",ofGetElapsedTimeMillis());
+
 shader.setUniform1i("u_steps",steps);
 shader.setUniform1f("u_trace_dist",trace_dist);
 shader.setUniform1f("u_eps",eps);
+
+shader.setUniform1i("u_shad_steps",shad_steps);
+shader.setUniform1f("u_shad_eps",shad_eps);
+shader.setUniform1f("u_shad_min",shad_min);
+shader.setUniform1f("u_shad_max",shad_max);
+shader.setUniform1f("u_shad_k",shad_k); 
+
+shader.setUniform3f("u_light_pos",light_pos);
+shader.setUniform1f("u_light_intensity",light_intensity);
+shader.setUniform1i("u_light_cam",light_cam);
+
+shader.setUniform1i("u_plane_display",plane_display);
+shader.setUniform3f("u_plane_orient",plane_orient);
+shader.setUniform3f("u_plane_offset",plane_offset);
+
 shader.setUniform2f("u_res",w,h);
+
 shader.setUniform3f("u_cam_pos",glm::vec3(cam.getPosition()));
 shader.setUniform3f("u_cam_target",glm::vec3(cam.getTarget().getPosition()));
+
 shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 
 ofDrawRectangle(0,0,w,h);
