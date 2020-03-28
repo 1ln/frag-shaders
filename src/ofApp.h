@@ -30,10 +30,33 @@ class ofApp : public ofBaseApp {
 
     ofNode light;
 
-    float trace_dist;
-    float eps;
-       
-    int steps;
+    ofxPanel gui;
+
+    ofxFloatSlider trace_dist;
+    ofxFloatSlider eps;  
+    ofxIntSlider steps;
+   
+    ofxIntSlider aa;
+  
+    ofxIntSlider shad_steps;
+    ofxFloatSlider shad_eps;
+    ofxFloatSlider shad_min;
+    ofxFloatSlider shad_max;
+    ofxFloatSlider shad_k;
+    
+    ofxColor dif;
+    ofxColor amb;
+    ofxColor spe;
+
+    ofxVec3Slider light_pos;
+    ofxFloatSlider light_intensity;
+    ofxToggle light_display;
+
+    ofxVec3Slider plane_offset;
+    ofxVec3Slider plane_orient;
+    ofxToggle plane_display;
+
+
     bool cam_orbit;
 
     ofVec2f mouse;
