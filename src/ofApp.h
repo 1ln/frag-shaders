@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxGui.h"
 
 class ofApp : public ofBaseApp {
 
@@ -36,6 +37,9 @@ class ofApp : public ofBaseApp {
     ofxFloatSlider eps;  
     ofxIntSlider steps;
    
+    ofxVec3Slider cam_pos;
+    ofxToggle cam_orbit;
+
     ofxIntSlider aa;
   
     ofxIntSlider shad_steps;
@@ -44,20 +48,18 @@ class ofApp : public ofBaseApp {
     ofxFloatSlider shad_max;
     ofxFloatSlider shad_k;
     
-    ofxColor dif;
-    ofxColor amb;
-    ofxColor spe;
+    ofxColorSlider dif;
+    ofxColorSlider amb;
+    ofxColorSlider spe;
 
     ofxVec3Slider light_pos;
     ofxFloatSlider light_intensity;
     ofxToggle light_display;
+    ofxToggle light_cam;
 
     ofxVec3Slider plane_offset;
     ofxVec3Slider plane_orient;
     ofxToggle plane_display;
-
-
-    bool cam_orbit;
 
     ofVec2f mouse;
 

@@ -29,18 +29,17 @@ gui.add(shad_min.setup("Shadow Minimum",0.005,0.,100.));
 gui.add(shad_max.setup("Shadow Maximum",0.005,0.,100.));
 gui.add(shad_k.setup("Shadow K",10.,0.,100.));
 
-gui.add(dif.setup("Diffuse",ofColor(255.,0.,0.),ofColor(0.),ofColor(255.));
-gui.add(amb.setup("Ambient",ofColor(.05),ofColor(0.),ofColor(255.));
-gui.add(spe.setup("Specular",ofColor(1.),ofColor(0.),ofColor(255.));
+gui.add(dif.setup("Diffuse",ofColor(255.,0.,0.),ofColor(0.),ofColor(255.)));
+gui.add(amb.setup("Ambient",ofColor(.05),ofColor(0.),ofColor(255.)));
+gui.add(spe.setup("Specular",ofColor(1.),ofColor(0.),ofColor(255.)));
 
-gui.add(light_pos.setup("Light Position",glm::vec3(0.,0.,5.));
-gui.add(light_intensity.setup("Light Intensity",10.,0.,100.));
+gui.add(light_pos.setup("Light Position",glm::vec3(0.0,0.0,5.0));
+gui.add(light_intensity.setup("Light Intensity",10.0,0.0,100.0));
 gui.add(light_cam.setup("Light Camera Follow",false));
-
-gui.add(plane_offset.setup("Plane offset",glm::vec3(0.,0.,5.));
-gui.add(plane_orient.setup("Plane orient",glm::vec3(0.,1.,0.));
+ 
+gui.add(plane_offset.setup("Plane offset",glm::vec3(0.0,0.0,5.0));
+gui.add(plane_orient.setup("Plane orient",glm::vec3(0.0,1.0,0.0));
 gui.add(plane_display.setup("Plane Display",false));
-
 
 }
 
@@ -56,7 +55,7 @@ shader.begin();
 shader.setUniform1f("u_time",ofGetElapsedTimeMillis());
 
 shader.setUniform1i("u_steps",steps);
-shader.setUniform1f("u_trace_dist",trace_dist);
+shader.setUniform1f("u_dist",trace_dist);
 shader.setUniform1f("u_eps",eps);
 
 shader.setUniform1i("u_aa",aa);
@@ -82,7 +81,7 @@ shader.setUniform3f("u_plane_offset",plane_offset);
 shader.setUniform2f("u_res",w,h);
 
 shader.setUniform3f("u_cam_pos",glm::vec3(cam.getPosition()));
-shader.setUniform3f("u_cam_target",glm::vec3(cam.getTarget().getPosition()));
+shader.setUniform3f("u_cam_tar",glm::vec3(cam.getTarget().getPosition()));
 
 shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 

@@ -466,13 +466,13 @@ vec2 rayScene(vec3 ro,vec3 rd) {
         vec3 p = ro + depth * rd;
         vec2 dist = scene(p);
    
-        if(abs( dist.x) < u_eps || u_trace_dist <  dist.x ) { break; }
+        if(abs( dist.x) < u_eps || u_dist <  dist.x ) { break; }
         depth += dist.x;
         d = dist.y;
 
         }
  
-        if(u_trace_dist  < depth) { d = -1.0; }
+        if(u_dist  < depth) { d = -1.0; }
         return vec2(depth,d);
 
 }
