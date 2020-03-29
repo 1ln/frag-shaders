@@ -18,13 +18,13 @@ mouse.y = 0;
 gui.setup();
 
 gui.add(steps.setup("Steps",100,0,1000));
-gui.add(eps.setup("Epsilon",0.001,0.0000001,1.));
+gui.add(eps.setup("Epsilon",0.001,0.0,1.));
 gui.add(trace_dist.setup("Trace Distance",500,0,10000));
 
 gui.add(aa.setup("Anti Alias",1,0,3));
 
 gui.add(shad_steps.setup("Shadow Steps",25,0,1000));
-gui.add(shad_eps.setup("Shadow Epsilon",0.001,0.0000001,1.));
+gui.add(shad_eps.setup("Shadow Epsilon",0.001,0.0,1.));
 gui.add(shad_min.setup("Shadow Minimum",0.005,0.,100.));
 gui.add(shad_max.setup("Shadow Maximum",0.005,0.,100.));
 gui.add(shad_k.setup("Shadow K",10.,0.,100.));
@@ -33,12 +33,12 @@ gui.add(dif.setup("Diffuse",ofColor(255.,0.,0.),ofColor(0.),ofColor(255.)));
 gui.add(amb.setup("Ambient",ofColor(.05),ofColor(0.),ofColor(255.)));
 gui.add(spe.setup("Specular",ofColor(1.),ofColor(0.),ofColor(255.)));
 
-gui.add(light_pos.setup("Light Position",glm::vec3(0.0,0.0,5.0));
+gui.add(light_pos.setup("Light Position",glm::vec3(1.0),glm::vec3(-1.),glm::vec3(1.)));
 gui.add(light_intensity.setup("Light Intensity",10.0,0.0,100.0));
 gui.add(light_cam.setup("Light Camera Follow",false));
  
-gui.add(plane_offset.setup("Plane offset",glm::vec3(0.0,0.0,5.0));
-gui.add(plane_orient.setup("Plane orient",glm::vec3(0.0,1.0,0.0));
+gui.add(plane_offset.setup("Plane offset",glm::vec3(0.0),glm::vec3(-10.),glm::vec3(10.0)));
+gui.add(plane_orient.setup("Plane orient",glm::vec3(0.0,1.0,0.0),glm::vec3(0.),glm::vec3(1.)));
 gui.add(plane_display.setup("Plane Display",false));
 
 }
