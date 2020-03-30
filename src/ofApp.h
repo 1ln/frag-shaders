@@ -16,10 +16,15 @@ class ofApp : public ofBaseApp {
     void mousePressed(int x, int y,int button);
     void mouseReleased(int x,int y,int button);
     void windowResized(int w,int h); 
+    
+    void updateDif(ofColor & col);
+    void updateAmb(ofColor & col);
+    void updateSpe(ofColor & col);
 
     int w;
     int h;
-       
+ 
+    ofPlane plane;      
     ofEasyCam cam;
 
     ofFbo s;
@@ -47,6 +52,10 @@ class ofApp : public ofBaseApp {
     ofParameter<float> shad_max;
     ofParameter<float> shad_k;
     
+    ofEventListener dif_listener;
+    ofEventListener amb_listener;
+    ofEventListener spe_listener;
+
     ofParameter<ofColor> dif;
     ofParameter<ofColor> amb;
     ofParameter<ofColor> spe;
@@ -63,7 +72,7 @@ class ofApp : public ofBaseApp {
     ofParameter<string> screen_size;
     ofParameter<string> fps_counter;
    
-    
+    bool gui_hide;   
     ofVec2f mouse;
 
 };
