@@ -15,13 +15,14 @@ class ofApp : public ofBaseApp {
     void mouseMoved(int x,int y);   
     void mousePressed(int x, int y,int button);
     void mouseReleased(int x,int y,int button);
- 
+    void windowResized(int w,int h); 
+
     int w;
     int h;
        
     ofEasyCam cam;
 
-    ofFbo buf;
+    ofFbo s;
 
     ofTexture ntex;
     ofTexture rtex;
@@ -29,38 +30,40 @@ class ofApp : public ofBaseApp {
     ofShader shader;
     ofImage img;      
 
-    ofNode light;
-
     ofxPanel gui;
 
-    ofxFloatSlider trace_dist;
-    ofxFloatSlider eps;  
-    ofxIntSlider steps;
+    ofParameter<float> dist;
+    ofParameter<float> eps;  
+    ofParameter<int> steps;
    
-    ofxVec3Slider cam_pos;
-    ofxToggle cam_orbit;
+    ofParameter<glm::vec3> cam_pos;
+    ofParameter<bool> cam_orbit;
 
-    ofxIntSlider aa;
+    ofParameter<int> aa;
   
-    ofxIntSlider shad_steps;
-    ofxFloatSlider shad_eps;
-    ofxFloatSlider shad_min;
-    ofxFloatSlider shad_max;
-    ofxFloatSlider shad_k;
+    ofParameter<int> shad_steps;
+    ofParameter<float> shad_eps;
+    ofParameter<float> shad_min;
+    ofParameter<float> shad_max;
+    ofParameter<float> shad_k;
     
-    ofxColorSlider dif;
-    ofxColorSlider amb;
-    ofxColorSlider spe;
+    ofParameter<ofColor> dif;
+    ofParameter<ofColor> amb;
+    ofParameter<ofColor> spe;
 
-    ofxVec3Slider light_pos;
-    ofxFloatSlider light_intensity;
-    ofxToggle light_display;
-    ofxToggle light_cam;
+    ofParameter<glm::vec3> light_pos;
+    ofParameter<float> light_intensity;
+    ofParameter<bool> light_display;
+    ofParameter<bool> light_cam;
 
-    ofxVec3Slider plane_offset;
-    ofxVec3Slider plane_orient;
-    ofxToggle plane_display;
+    ofParameter<glm::vec3> plane_offset;
+    ofParameter<glm::vec3> plane_orient;
+    ofParameter<bool> plane_display;
 
+    ofParameter<string> screen_size;
+    ofParameter<string> fps_counter;
+   
+    
     ofVec2f mouse;
 
 };
