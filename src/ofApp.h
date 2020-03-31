@@ -17,14 +17,10 @@ class ofApp : public ofBaseApp {
     void mouseReleased(int x,int y,int button);
     void windowResized(int w,int h); 
     
-    void updateDif(ofColor & col);
-    void updateAmb(ofColor & col);
-    void updateSpe(ofColor & col);
-
     int w;
     int h;
  
-    ofPlane plane;      
+    ofPlanePrimitive plane;      
     ofEasyCam cam;
 
     ofFbo s;
@@ -51,14 +47,10 @@ class ofApp : public ofBaseApp {
     ofParameter<float> shad_min;
     ofParameter<float> shad_max;
     ofParameter<float> shad_k;
-    
-    ofEventListener dif_listener;
-    ofEventListener amb_listener;
-    ofEventListener spe_listener;
 
-    ofParameter<ofColor> dif;
-    ofParameter<ofColor> amb;
-    ofParameter<ofColor> spe;
+    ofParameter<glm::vec3> dif;
+    ofParameter<glm::vec3> amb;
+    ofParameter<glm::vec3> spe;
 
     ofParameter<glm::vec3> light_pos;
     ofParameter<float> light_intensity;
