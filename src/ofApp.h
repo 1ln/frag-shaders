@@ -33,6 +33,13 @@ class ofApp : public ofBaseApp {
 
     ofxPanel gui;
 
+    ofParameterGroup render_grp;
+    ofParameterGroup info_grp;
+    ofParameterGroup cam_grp;
+    ofParameterGroup light_grp;
+    ofParameterGroup shad_grp;
+    ofParameterGroup plane_grp;
+
     ofParameter<float> dist;
     ofParameter<float> eps;  
     ofParameter<int> steps;
