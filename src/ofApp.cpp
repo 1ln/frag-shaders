@@ -17,12 +17,10 @@ plane.set(w,h);
 plane.setPosition(w/2,h/2,0);
 plane.setResolution(2,2);
 
-cam_orbit = true;
-
-gui_hide = false;
-
 cam.setPosition(glm::vec3(0.0,0.0,5.0));
 cam.lookAt(glm::vec3(0.0));
+
+gui_hide = false;
 
 mouse.x = 0;
 mouse.y = 0;
@@ -34,20 +32,20 @@ render_grp.add(steps.set("Steps",250,0,2500));
 render_grp.add(eps.set("Epsilon",0.001,0.00001,.01));
 render_grp.add(dist.set("Distance",500,0,2500));
 render_grp.add(aa.set("Anti Alias",1,0,3));
+render_grp.add(hash.set("Hash",.55121));
 
 info_grp.setName("Information");
-//info_grp.add(hash.set("Hash",hash);
-//info_grp.add(cam_pos.set("Camera position",glm::vec3(cam.getPosition()),""));
-//info_grp.add(screen_size.set("Screen Size",""));
-//info_grp.add(fps_counter.set("Frame per second",""));
+info_grp.add(screen_size.set("Screen Size",""));
+info_grp.add(fps_counter.set("Frame per second",""));
 
-//cam.add(cam_fov.set("Camera fov",45,0,2500));
-//cam.add(cam_orbit.set("Camera orbit",true));
+cam_grp.setName("Camera");
+cam_grp.add(cam_fov.set("Camera fov",1,0,2500));
+cam_grp.add(cam_orbit.set("Camera orbit",true));
 
 shad_grp.setName("Shadow");
 shad_grp.add(shad_steps.set("Shadow Steps",25,0,500));
 shad_grp.add(shad_eps.set("Shadow Epsilon",0.001,0.00001,0.01));
-shad_grp.add(shad_min.set("Shadow Minimum",0.005,0.0,10.));
+shad_grp.add(shad_min.set("Shadow Minimum",2.,0.0,100.));
 shad_grp.add(shad_max.set("Shadow Maximum",10.,0.,100.));
 shad_grp.add(shad_k.set("Shadow K",10.,0.,100.));
 
@@ -55,7 +53,7 @@ light_grp.setName("Lighting");
 light_grp.add(dif.set("Diffuse",glm::vec3(1.,0.,0.),glm::vec3(0.),glm::vec3(1.)));
 light_grp.add(amb.set("Ambient",glm::vec3(.05),glm::vec3(0.),glm::vec3(1.)));
 light_grp.add(spe.set("Specular",glm::vec3(1.),glm::vec3(0.),glm::vec3(1.)));
-light_grp.add(light_pos.set("Light Position",glm::vec3(1.0),glm::vec3(-1.),glm::vec3(1.)));
+light_grp.add(light_pos.set("Light Position",glm::vec3(10.0),glm::vec3(-100.),glm::vec3(100.)));
 light_grp.add(light_intensity.set("Light Intensity",10.0,0.0,100.0));
 light_grp.add(light_cam.set("Light Camera Follow",false));
  
@@ -66,11 +64,13 @@ plane_grp.add(plane_display.set("Plane Display",false));
 
 gui.add(render_grp);
 gui.add(info_grp);
+gui.add(cam_grp);
 gui.add(shad_grp);
 gui.add(light_grp);
 gui.add(plane_grp);
 
-//gui.getGroup("Camera").minimize();
+gui.getGroup("Information").minimize();
+gui.getGroup("Camera").minimize();
 gui.getGroup("Shadow").minimize();
 gui.getGroup("Lighting").minimize();
 gui.getGroup("Plane Reflector").minimize();
@@ -81,10 +81,8 @@ gui.getGroup("Plane Reflector").minimize();
 
 void ofApp::draw() {
 
-if(cam_orbit == true) {
 cam.begin();
 cam.end();
-}
 
 shader.begin();
 
@@ -118,6 +116,7 @@ shader.setUniform2f("u_res",w,h);
 
 shader.setUniform3f("u_cam_pos",glm::vec3(cam.getPosition()));
 shader.setUniform3f("u_cam_tar",glm::vec3(cam.getTarget().getPosition()));
+shader.setUniform1f("u_cam_fov",cam_fov);
 
 shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 

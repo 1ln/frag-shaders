@@ -43,9 +43,11 @@ class ofApp : public ofBaseApp {
     ofParameter<float> dist;
     ofParameter<float> eps;  
     ofParameter<int> steps;
-   
+    ofParameter<float> hash;   
+
     ofParameter<glm::vec3> cam_pos;
     ofParameter<bool> cam_orbit;
+    ofParameter<float> cam_fov;
 
     ofParameter<int> aa;
   

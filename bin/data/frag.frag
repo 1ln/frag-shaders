@@ -576,12 +576,12 @@ vec3 linear = vec3(0.);
 dif *= shadow(p,l);
 ref *= shadow(p,l);
 
-linear += 1. * dif  * vec3(.5);
-linear += .5 * amb  * vec3(0.05);
-linear += .45 *  ref * vec3(.45,.45,.5);
+linear += 1. * dif  * vec3(u_dif);
+linear += .5 * amb  * vec3(u_amb);
+linear += .45 *  ref * vec3(u_spe);
 linear +=  fre * vec3(1.);
 
-col += .5 *  sin(vec3(.5,1.,.25 ) );
+col += vec3(1.,0.,0.);
 
 col = col * linear;
 col += 5. * spe * vec3(1.,.5,.9);
