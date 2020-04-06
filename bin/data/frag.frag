@@ -31,13 +31,29 @@ uniform vec3 u_light_pos;
 uniform float u_light_intensity;
 uniform int u_light_cam;
 
+uniform vec3 u_col;
+
 uniform vec3 u_dif;
 uniform vec3 u_amb;
 uniform vec3 u_spe;
 
 uniform int u_plane_display;
-uniform vec3 u_plane_orient;
-uniform vec3 u_plane_offset;
+uniform float u_plane_offset;
+
+uniform int u_sphere;
+uniform int u_box;
+uniform int u_torus;
+uniform int u_octahedron;
+uniform int u_prism;
+
+uniform int u_sine_display;
+uniform float u_sine_offset;
+uniform float u_sine_height;
+
+uniform int u_fnoise_display;
+uniform int u_fnoise_octaves;
+uniform float u_fnoise_offset;
+uniform float u_fnoise_frequency;
 
 //uniform sampler2D u_noise_tex;
 
@@ -440,17 +456,37 @@ float crossbox(vec3 p,float l,float d) {
 
 vec2 scene(vec3 p) { 
 
-float t  = u_time;
-
 vec2 res = vec2(1.0,0.0);
+vec3 q = vec3(p); 
 
-vec3 q = vec3(p);
-
-if(u_plane_display == 1) {
-    res = opu(res,vec2(plane(p - u_plane_offset,vec4(u_plane_orient,1)),1.));
+if(u_sine_display == 1) {
+p += u_sine_offset * sin3(p,u_sine_height);
 }
 
-res = opu(res,vec2(sphere(p,1.),2.));
+if(u_plane_display == 1) {
+    res = opu(res,vec2(plane(q - vec3(0.,-u_plane_offset,0.)  ,vec4(0,1,0,1)),1.));
+}
+
+if(u_sphere == 1) {
+    res = opu(res,vec2(sphere(p,1.),2.));
+}
+
+if(u_box == 1) {
+    res = opu(res,vec2(box(p,vec3(1.)),2.));
+}
+
+if(u_torus == 1) {
+    res = opu(res,vec2(torus(p,vec2(1.,.5)),2.));
+}
+
+if(u_octahedron == 1) {
+    res = opu(res,vec2(octahedron(p,1.),2.));
+}
+
+if(u_prism == 1) {
+    res = opu(res,vec2(prism(p,vec2(1.,.5)),2.));
+}
+
 
 return res;
 
@@ -581,14 +617,18 @@ linear += .5 * amb  * vec3(u_amb);
 linear += .45 *  ref * vec3(u_spe);
 linear +=  fre * vec3(1.);
 
-col += vec3(1.,0.,0.);
+if(d.y == 1.) {
+col += vec3(.5);
+}
+
+if(d.y == 2.) {
+col += u_col;
+}
 
 col = col * linear;
 col += 5. * spe * vec3(1.,.5,.9);
 
 }
-   
-col = pow(col,vec3(.4545));
 
 return col;
 }
@@ -614,11 +654,13 @@ for(int k = 0; k < aa; k++ ) {
 
        vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
        vec3 color = render(cam_pos,direction);
+      
        out_color += color;  
 
    }
-
-   out_color /= float(aa*aa);      
+    
+   out_color /= float(aa*aa);
+   out_color = pow(out_color,vec3(.4545));      
    out_FragColor = vec4(out_color,1.0);
  
 }
