@@ -34,14 +34,9 @@ class ofApp : public ofBaseApp {
     ofxPanel gui;
 
     ofParameterGroup render_grp;
-    ofParameterGroup info_grp;
-    ofParameterGroup sdf_grp;
     ofParameterGroup light_grp;
     ofParameterGroup reflect_grp;
-    ofParameterGroup sine_grp;
-    ofParameterGroup fnoise_grp;
     ofParameterGroup shad_grp;
-    ofParameterGroup plane_grp;
 
     ofParameter<float> dist;
     ofParameter<float> eps;  
@@ -50,14 +45,10 @@ class ofApp : public ofBaseApp {
     ofParameter<int> aa;
   
     ofParameter<int> reflect_steps;
-    ofParameter<float> reflect_eps;
-    ofParameter<float> reflect_min;
-    ofParameter<float> reflect_max;
+    ofParameter<float> reflect_dist;
 
     ofParameter<int> shad_steps;
-    ofParameter<float> shad_eps;
-    ofParameter<float> shad_min;
-    ofParameter<float> shad_max;
+    ofParameter<float> shad_dist;
     ofParameter<float> shad_k;
 
     ofParameter<glm::vec3> col;
@@ -66,27 +57,7 @@ class ofApp : public ofBaseApp {
     ofParameter<glm::vec3> spe;
     ofParameter<glm::vec3> light_pos;
     ofParameter<float> light_intensity;
-    ofParameter<bool> light_display;
-    ofParameter<bool> light_cam;
 
-    ofParameter<float> plane_offset;
-    ofParameter<bool> plane_display;
-
-    ofParameter<bool> sine_display;
-    ofParameter<float> sine_height;   
-    ofParameter<float> sine_offset;
-
-    ofParameter<bool> fnoise_display;
-    ofParameter<int> fnoise_octaves;
-    ofParameter<float> fnoise_frequency;
-    ofParameter<float> fnoise_offset;
-
-    ofParameter<bool> sphere;
-    ofParameter<bool> box;
-    ofParameter<bool> torus;
-    ofParameter<bool> octahedron;
-    ofParameter<bool> prism;
- 
     ofParameter<string> screen_size;
     ofParameter<string> fps_counter;
    

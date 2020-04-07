@@ -18,42 +18,20 @@ uniform float u_eps;
 uniform float u_dist;
 uniform int u_steps;
 
-uniform float u_shad_eps;
 uniform float u_shad_dist;
 uniform int u_shad_steps;
 uniform float u_shad_k;
-uniform float u_shad_min;
-uniform float u_shad_max;
 
 uniform int u_aa;
 
 uniform vec3 u_light_pos;
 uniform float u_light_intensity;
-uniform int u_light_cam;
 
 uniform vec3 u_col;
 
 uniform vec3 u_dif;
 uniform vec3 u_amb;
-uniform vec3 u_spe;
-
-uniform int u_plane_display;
-uniform float u_plane_offset;
-
-uniform int u_sphere;
-uniform int u_box;
-uniform int u_torus;
-uniform int u_octahedron;
-uniform int u_prism;
-
-uniform int u_sine_display;
-uniform float u_sine_offset;
-uniform float u_sine_height;
-
-uniform int u_fnoise_display;
-uniform int u_fnoise_octaves;
-uniform float u_fnoise_offset;
-uniform float u_fnoise_frequency;
+uniform vec3 u_spe; 
 
 //uniform sampler2D u_noise_tex;
 
@@ -459,34 +437,10 @@ vec2 scene(vec3 p) {
 vec2 res = vec2(1.0,0.0);
 vec3 q = vec3(p); 
 
-if(u_sine_display == 1) {
-p += u_sine_offset * sin3(p,u_sine_height);
-}
+//p += u_sine_offset * sin3(p,u_sine_height);
 
-if(u_plane_display == 1) {
-    res = opu(res,vec2(plane(q - vec3(0.,-u_plane_offset,0.)  ,vec4(0,1,0,1)),1.));
-}
-
-if(u_sphere == 1) {
-    res = opu(res,vec2(sphere(p,1.),2.));
-}
-
-if(u_box == 1) {
-    res = opu(res,vec2(box(p,vec3(1.)),2.));
-}
-
-if(u_torus == 1) {
-    res = opu(res,vec2(torus(p,vec2(1.,.5)),2.));
-}
-
-if(u_octahedron == 1) {
-    res = opu(res,vec2(octahedron(p,1.),2.));
-}
-
-if(u_prism == 1) {
-    res = opu(res,vec2(prism(p,vec2(1.,.5)),2.));
-}
-
+res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
+res = opu(res,vec2(octahedron(p,1.),2.));
 
 return res;
 
@@ -538,7 +492,7 @@ float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
 float shadow(vec3 ro,vec3 rd ) {
 
     float res = 1.0;
-    float t = u_shad_min;
+    float t = 0.005;
     float ph = 1e10;
     
     for(int i = 0; i < u_shad_steps; i++ ) {
@@ -551,7 +505,7 @@ float shadow(vec3 ro,vec3 rd ) {
         ph = h;
         t += h;
     
-        if(res < u_shad_eps || t > u_shad_max ) { break; }
+        if(res < u_eps || t > u_shad_dist;) { break; }
 
         }
 
@@ -610,12 +564,12 @@ float ref = smoothstep(-.2,.2,r.y);
 vec3 linear = vec3(0.);
 
 dif *= shadow(p,l);
-ref *= shadow(p,l);
+ref *= shadow(p,r);
 
-linear += 1. * dif  * vec3(u_dif);
-linear += .5 * amb  * vec3(u_amb);
-linear += .45 *  ref * vec3(u_spe);
-linear +=  fre * vec3(1.);
+linear += dif * vec3(u_dif);
+linear += amb * vec3(u_amb);
+linear += ref * vec3(u_spe);
+linear += fre * vec3(1.);
 
 if(d.y == 1.) {
 col += vec3(.5);
