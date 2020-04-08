@@ -505,7 +505,7 @@ float shadow(vec3 ro,vec3 rd ) {
         ph = h;
         t += h;
     
-        if(res < u_eps || t > u_shad_dist;) { break; }
+        if(res < u_eps || t > u_shad_dist) { break; }
 
         }
 
