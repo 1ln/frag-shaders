@@ -2,7 +2,8 @@
 
 void ofApp::setup() {
 
-shader.load("render.vert","frag.frag");
+src = filesystem::path("../../src");
+shader.load(src/"render.vert",src/"frag.frag");
 
 w = ofGetWidth();
 h = ofGetHeight();
@@ -17,10 +18,12 @@ plane.set(w,h);
 plane.setPosition(w/2,h/2,0);
 plane.setResolution(2,2);
 
-cam.setPosition(glm::vec3(0.0,0.0,5.0));
+cam.setPosition(glm::vec3(1.0,2.0,5.0));
 cam.lookAt(glm::vec3(0.0));
 
-gui_hide = false;
+gui_display = false;
+info_display = false;
+unit_box_display = false;
 
 mouse.x = 0;
 mouse.y = 0;
@@ -103,7 +106,10 @@ shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 plane.set(w,h);
 plane.setPosition(w/2,h/2,0);
 plane.draw();
-//ofDrawRectangle(0,0,w,h);
+
+if(unit_box_display) {
+unit_box.drawWireFrame();
+}
 
 shader.end();
 
@@ -115,10 +121,20 @@ gui.draw();
 
 void ofApp::update() {
 
-cout << ofToString(ofGetFrameRate()) << endl;
-
 w = ofGetWidth();
 h = ofGetHeight();
+
+if(info_display) {
+    printInfo();
+}
+
+}
+
+void ofApp::printInfo() {
+
+   cout << "Frame Rate: " + ofToString(ofGetFrameRate()) << endl;
+   cout << "Camera Position : " + ofToString(cam.getPosition()) << endl;
+   cout << "Screen size : " + screen_size;
 
 }
 
@@ -132,8 +148,19 @@ void ofApp::keyPressed(int key) {
 
     if(key == 's') {
         img.grabScreen(0,0,w,h);
-        img.save("source.png");
+        img.save("../../source.png");
     }
+
+    if(key == 'f') {
+      
+        res = ofSystemLoadDialog("Load fragment shader",false,"../../src");
+      
+        if(res.bSuccess) {
+            src_frag = res.getPath();
+        }
+        
+        shader.load(src/"render.vert",src_frag);
+    } 
 
     if(key == 'h') {
         gui_hide = !gui_hide;
