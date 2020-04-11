@@ -2,8 +2,8 @@
 
 void ofApp::setup() {
 
-src = filesystem::path("../../src");
-shader.load(src/"render.vert",src/"frag.frag");
+path = filesystem::path("../../src");
+shader.load(path/"render.vert",path/"frag.frag");
 
 w = ofGetWidth();
 h = ofGetHeight();
@@ -22,8 +22,8 @@ cam.setPosition(glm::vec3(1.0,2.0,5.0));
 cam.lookAt(glm::vec3(0.0));
 
 gui_display = false;
-info_display = false;
-unit_box_display = false;
+info = false;
+unit_cube = false;
 
 mouse.x = 0;
 mouse.y = 0;
@@ -107,13 +107,13 @@ plane.set(w,h);
 plane.setPosition(w/2,h/2,0);
 plane.draw();
 
-if(unit_box_display) {
-unit_box.drawWireFrame();
+if(unit_cube) {
+box.drawWireframe();
 }
 
 shader.end();
 
-if(!gui_hide) {
+if(!gui_display) {
 gui.draw();
 }
 
@@ -124,7 +124,7 @@ void ofApp::update() {
 w = ofGetWidth();
 h = ofGetHeight();
 
-if(info_display) {
+if(info) {
     printInfo();
 }
 
@@ -134,7 +134,6 @@ void ofApp::printInfo() {
 
    cout << "Frame Rate: " + ofToString(ofGetFrameRate()) << endl;
    cout << "Camera Position : " + ofToString(cam.getPosition()) << endl;
-   cout << "Screen size : " + screen_size;
 
 }
 
@@ -159,11 +158,11 @@ void ofApp::keyPressed(int key) {
             src_frag = res.getPath();
         }
         
-        shader.load(src/"render.vert",src_frag);
+        shader.load(path/"render.vert",src_frag);
     } 
 
     if(key == 'h') {
-        gui_hide = !gui_hide;
+        gui_display = !gui_display;
     }
 
 }

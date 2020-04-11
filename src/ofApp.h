@@ -25,14 +25,16 @@ class ofApp : public ofBaseApp {
     void mousePressed(int x, int y,int button);
     void mouseReleased(int x,int y,int button);
     void windowResized(int w,int h); 
-    
+
+    void printInfo();
+
     int w;
     int h;
  
     ofPlanePrimitive plane;
     ofBoxPrimitive box;
-    ofIcospherePrimitive sphere;
-      
+    ofIcoSpherePrimitive sphere;
+    
     ofEasyCam cam;
 
     ofLight light;
@@ -72,14 +74,14 @@ class ofApp : public ofBaseApp {
     ofParameter<string> screen_size;
     ofParameter<string> fps_counter;
    
-    ofParameter gui_display;
-    ofParameter info;
-    ofParameter unit_cube;
+    ofParameter<bool> gui_display;
+    ofParameter<bool> info;
+    ofParameter<bool> unit_cube;
    
     ofVec2f mouse;
 
     ofFileDialogResult res;
-    string src; 
+    filesystem::path path; 
     string src_frag;
     string src_vert;
 
