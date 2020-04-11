@@ -3,6 +3,15 @@
 #include "ofMain.h"
 #include "ofxGui.h"
 
+/*
+#include "hash.h"
+#include "noise.h"
+
+#include "gridBoxes.h"
+#include "concentricCircles.h"
+#include "stackedCircles.h"
+*/
+
 class ofApp : public ofBaseApp {
 
     public:
@@ -20,13 +29,15 @@ class ofApp : public ofBaseApp {
     int w;
     int h;
  
-    ofPlanePrimitive plane;      
+    ofPlanePrimitive plane;
+    ofBoxPrimitive box;
+    ofIcospherePrimitive sphere;
+      
     ofEasyCam cam;
 
-    ofFbo s;
+    ofLight light;
 
-    ofTexture ntex;
-    ofTexture rtex;
+    ofFbo s;
 
     ofShader shader;
     ofImage img;      
@@ -61,7 +72,16 @@ class ofApp : public ofBaseApp {
     ofParameter<string> screen_size;
     ofParameter<string> fps_counter;
    
-    bool gui_hide;   
+    ofParameter gui_display;
+    ofParameter info;
+    ofParameter unit_cube;
+   
     ofVec2f mouse;
+
+    ofFileDialogResult res;
+    string src; 
+    string src_frag;
+    string src_vert;
+
 
 };
