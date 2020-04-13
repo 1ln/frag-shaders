@@ -20,6 +20,10 @@ plane.setResolution(2,2);
 
 cam.setPosition(glm::vec3(1.0,2.0,5.0));
 cam.lookAt(glm::vec3(0.0));
+cam.setNearClip(.01);
+
+light.setup();
+light.setPosition(glm::vec3(0,5,10));
 
 gui_display = false;
 info = false;
@@ -52,7 +56,7 @@ light_grp.add(col.set("Color",glm::vec3(0.,1.,0.),glm::vec3(0.),glm::vec3(1.)));
 light_grp.add(dif.set("Diffuse",glm::vec3(.5),glm::vec3(0.),glm::vec3(1.)));
 light_grp.add(amb.set("Ambient",glm::vec3(.05),glm::vec3(0.),glm::vec3(1.)));
 light_grp.add(spe.set("Specular",glm::vec3(1.),glm::vec3(0.),glm::vec3(1.)));
-light_grp.add(light_pos.set("Light Position",glm::vec3(10.0),glm::vec3(-100.),glm::vec3(100.)));
+light_grp.add(light_pos.set("Light Position",light.getPosition(),glm::vec3(-100.),glm::vec3(100.)));
 light_grp.add(light_intensity.set("Light Intensity",10.0,0.0,100.0));
 
 gui.add(render_grp);
@@ -67,9 +71,6 @@ gui.getGroup("Lighting").minimize();
 }
 
 void ofApp::draw() {
-
-cam.begin();
-cam.end();
 
 shader.begin();
 
@@ -106,14 +107,18 @@ shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 plane.set(w,h);
 plane.setPosition(w/2,h/2,0);
 plane.draw();
-
-if(unit_cube) {
-box.drawWireframe();
-}
-
 shader.end();
 
-if(!gui_display) {
+cam.begin();
+
+if(unit_cube) {
+ofNoFill();
+ofDrawBox(glm::vec3(0),1.);
+}
+
+cam.end(); 
+
+if(gui_display) {
 gui.draw();
 }
 
@@ -123,6 +128,8 @@ void ofApp::update() {
 
 w = ofGetWidth();
 h = ofGetHeight();
+
+light.setPosition(light_pos);
 
 if(info) {
     printInfo();
