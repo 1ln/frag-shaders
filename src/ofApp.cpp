@@ -2,17 +2,25 @@
 
 void ofApp::setup() {
 
+ofEnableDepthTest();
+
 path = filesystem::path("../../src");
 shader.load(path/"render.vert",path/"frag.frag");
 
 w = ofGetWidth();
 h = ofGetHeight();
 
-s.allocate(w,h,GL_RGBA);
+db_settings.width = w;
+db_settings.height = h;
+db_settings.internalformat = GL_RGBA; 
+db_settings.useDepth = true;
+db_settings.depthStencilAsTexture = true; 
 
-s.begin();
+db.allocate(db_settings);
+
+db.begin();
 ofClear(0);
-s.end();
+db.end();
 
 plane.set(w,h);
 plane.setPosition(w/2,h/2,0);
@@ -72,7 +80,11 @@ gui.getGroup("Lighting").minimize();
 
 void ofApp::draw() {
 
+db.begin();
+ofClear(0);
+
 shader.begin();
+cam.begin();
 
 shader.setUniform1f("u_time",ofGetElapsedTimeMillis());
 
@@ -104,19 +116,24 @@ shader.setUniform3f("u_cam_tar",glm::vec3(cam.getTarget().getPosition()));
 
 shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 
+cam.end();
+
 plane.set(w,h);
 plane.setPosition(w/2,h/2,0);
+
 plane.draw();
+db.getDepthTexture().draw(0,0);
+
 shader.end();
 
-cam.begin();
+db.end();
+
+shader.setUniformTexture("depth",db.getDepthTexture(),0);
 
 if(unit_cube) {
 ofNoFill();
 ofDrawBox(glm::vec3(0),1.);
 }
-
-cam.end(); 
 
 if(gui_display) {
 gui.draw();

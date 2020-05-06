@@ -39,7 +39,8 @@ class ofApp : public ofBaseApp {
 
     ofLight light;
 
-    ofFbo s;
+    ofFbo db;
+    ofFbo::Settings db_settings;
 
     ofShader shader;
     ofImage img;      
