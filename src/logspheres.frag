@@ -7,12 +7,8 @@ out vec4 out_FragColor;
 uniform vec2 u_res;
 uniform float u_time;
 
-uniform float u_hash;
-
 uniform vec3 u_cam_pos;
 uniform vec3 u_cam_tar;
-
-uniform vec3 u_light_pos;
 
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
@@ -20,13 +16,13 @@ const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
 
 //15551*89491 = 1391674541
 float hash(float p) {
-    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0 * u_hash);
+    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0 );
     uint h = (n.x ^ n.y) * 1391674541U;
     return float(h) * (1.0/float(0xffffffffU));
 }
 
 vec3 hash3(vec3 p) {
-   uvec3 h = uvec3(ivec3(  p)) *  uvec3(1391674541U,2531151992.0 * u_hash,2860486313U);
+   uvec3 h = uvec3(ivec3(  p)) *  uvec3(1391674541U,2531151992.0,2860486313U);
    h = (h.x ^ h.y ^ h.z) * uvec3(1391674541U,2531151992U,2860486313U);
    return vec3(h) * (1.0/float(0xffffffffU));
 
@@ -370,7 +366,7 @@ float shadow(vec3 ro,vec3 rd ) {
         ph = h;
         t += h;
     
-        if(res < 0.001 || t > 100.) { break; }
+        if(res < 0.001 || t > 10.) { break; }
 
         }
 
@@ -408,19 +404,19 @@ vec3 render(vec3 ro,vec3 rd) {
 
 float t = u_time;
 
-//vec3 col = vec3(.5,1.,) - max(rd.y+ns,0.); 
 vec2 d = rayScene(ro, rd);
 
-vec3 cf = vec3(0.);                         
+vec3 cf = vec3(1.);                        
 vec3 col = cf - max(rd.y,0.);
 
 if(d.y >= 0.) {
 
 vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
-vec3 l = normalize( u_light_pos );
+vec3 l = normalize( vec3(0.,10.,0.));
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
+
 float amb = sqrt(clamp(0.5 + 0.5 * n.y,0.0,1.0));
 float dif = clamp(dot(n,l),0.0,1.0);
 float spe = pow(clamp(dot(n,h),0.0,1.0),16.) * dif * (.04 + 0.9 * pow(clamp(1. + dot(h,rd),0.,1.),5.));
@@ -455,7 +451,7 @@ int aa = 2;
 
 vec3 cam_target = u_cam_tar;
 vec3 cam_pos = vec3(.0);
-cam_pos = u_cam_pos;
+cam_pos = vec3(0.,10.,15.);
 
 for(int k = 0; k < aa; k++ ) {
 
@@ -467,7 +463,7 @@ for(int k = 0; k < aa; k++ ) {
        uv = uv * 2. - vec2(1.); 
        uv.x *= u_res.x/u_res.y; 
 
-       vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
+       vec3 direction = rayCamDir(uv,cam_pos,cam_target,45.);
        vec3 color = render(cam_pos,direction);
       
        out_color += color;  
