@@ -1,16 +1,16 @@
-#version 150
+#version 300 es
 
 // dolson,2019
 
 //precision mediump float;
 
 out vec4 out_FragColor; 
+varying vec2 uVu;
 
-uniform vec2 u_res;
+uniform float u_hash;
+uniform vec2 u_resolution;
 uniform float u_time;
-
 uniform vec3 u_cam_pos;
-uniform vec3 u_cam_tar;
 
 //uniform sampler2D u_noise_tex;
 
@@ -20,7 +20,7 @@ const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
 
 //15551*89491 = 1391674541
 float hash(float p) {
-    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0);
+    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0 * u_hash);
     uint h = (n.x ^ n.y) * 1391674541U;
     return float(h) * (1.0/float(0xffffffffU));
 }
@@ -413,11 +413,17 @@ float crossbox(vec3 p,float l,float d) {
 
 vec2 scene(vec3 p) { 
 
-vec2 res = vec2(1.0,0.0);
-vec3 q = vec3(p); 
+float s  = 0.0001;
+float t  = u_time;
 
-res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
-res = opu(res,vec2(octahedron(p,1.),2.));
+vec2 res = vec2(1.0,0.0);
+
+vec3 q = vec3(p);
+
+res = opu(res,vec2(plane(p +vec3(0.,1.,0.),vec4(0.,1.,0.,0.)) ,1.)); 
+res = opu(res,vec2(smod(cylinder(q,1.,.5),box(p,vec3(1.)),.5),2.)   );
+
+res = opu(res,vec2(1.,0.));
 
 return res;
 
@@ -428,18 +434,18 @@ vec2 rayScene(vec3 ro,vec3 rd) {
     float depth = 0.0;
     float d = -1.0;
 
-    for(int i = 0; i < 100; i++) {
+    for(int i = 0; i < 512; i++) {
 
         vec3 p = ro + depth * rd;
         vec2 dist = scene(p);
    
-        if(abs( dist.x) < 0.001 || 500. <  dist.x ) { break; }
+        if(abs( dist.x) < 0.0001 || 2500. <  dist.x ) { break; }
         depth += dist.x;
         d = dist.y;
 
         }
  
-        if(500. < depth) { d = -1.0; }
+        if(2500. < depth) { d = -1.0; }
         return vec2(depth,d);
 
 }
@@ -452,37 +458,36 @@ vec3 fog(vec3 c,vec3 fc,float b,float distance) {
 float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
 
     float depth = dmin;
-    float d = -1.0;
+    float h = 0.;
 
-    for(int i = 0; i < 5; i++ ) {
-        float h = scene(ro + rd * depth).x;
+    for(int i = 0; i < 100; i++ ) {
+        h = scene(ro + rd * depth).x;
 
-        if(h < 0.0001   ) { return depth; }
+        if(abs( h) < 0.0001 || depth > dmax ) { break; }
         
         depth += h;
     }
-
-    if(dmax <= depth ) { return dmax; }
-    return dmax;
+    
+    return depth;
 }
 
-float shadow(vec3 ro,vec3 rd ) {
+float shadow(vec3 ro,vec3 rd,float dmin,float dmax) {
 
     float res = 1.0;
-    float t = 0.005;
+    float t = dmin;
     float ph = 1e10;
     
-    for(int i = 0; i < 35; i++ ) {
+    for(int i = 0; i < 150; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
-        float y = h * h / (2. * ph);
+        float y = h*h / (2. * ph);
         float d = sqrt(h*h-y*y);         
-        res = min(res,10. * d/max(0.,t-y));
+        res = min(res,10.*d/max(0.,t-y)); 
         ph = h;
         t += h;
-    
-        if(res < 0.001 || t > 5. ) { break; }
+        
+        if(res < 0.0 || t > dmax ) { break; }
 
         }
 
@@ -492,7 +497,7 @@ float shadow(vec3 ro,vec3 rd ) {
 
 vec3 calcNormal(vec3 p) {
 
-    vec2 e = vec2(1.0,-1.0) * 0.001;
+    vec2 e = vec2(1.0,-1.0) * 0.0001;
 
     return normalize(vec3(
     vec3(e.x,e.y,e.y) * scene(p + vec3(e.x,e.y,e.y)).x +
@@ -516,79 +521,67 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
      return vDir;
 }
 
-vec3 render(vec3 ro,vec3 rd) {
+vec3 light(vec3 ro,vec3 rd,vec3 n,vec3 l,vec2 d) { 
 
-float t = u_time;
+vec3 lig_dir = l - rd;
+float lig_dist = max(length(lig_dir),0.001 );
+lig_dir /= lig_dist;
 
-//vec3 col = vec3(.5,1.,) - max(rd.y+ns,0.); 
-vec2 d = rayScene(ro, rd);
+float at = 1. / (1. + lig_dist * .2 + lig_dist *lig_dist * .1 );  
+float dif = max(dot(n,lig_dir),0.0);
 
-vec3 cf = vec3(0.);                         
-vec3 col = cf - max(rd.y,0.);
+float spe = pow(max(dot(reflect(-lig_dir,n),-rd),0.),8.);  
 
-if(d.y >= 0.) {
-
-vec3 p = ro + rd * d.x;
-vec3 n = calcNormal(p);
-vec3 l = normalize( vec3(0.,10.,0.));
-vec3 h = normalize(l - rd);
-vec3 r = reflect(rd,n);
-float amb = sqrt(clamp(0.5 + 0.5 * n.y,0.0,1.0));
-float dif = clamp(dot(n,l),0.0,1.0);
-float spe = pow(clamp(dot(n,h),0.0,1.0),16.) * dif * (.04 + 0.9 * pow(clamp(1. + dot(h,rd),0.,1.),5.));
-float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
-float ref = smoothstep(-.2,.2,r.y);
-vec3 linear = vec3(0.);
-
-dif *= shadow(p,l);
-ref *= shadow(p,r);
-
-linear += dif * vec3(0.,1.,0.);
-linear += amb * vec3(0.02);
-linear += ref * vec3(1.);
-linear += fre * vec3(1.);
+vec3 col = vec3(1.);
 
 if(d.y == 1.) {
-col += vec3(.5);
+col = vec3(1.);
 }
 
-col = col * linear;
-col += 5. * spe * vec3(1.,.5,.9);
-
+if(d.y == 2.) {
+col = vec3(1.,0.,0.);
 }
 
+col = (col * (dif + 100.  ) + vec3(1.  ) * spe * 2.) * at;
+ 
 return col;
+
 }
 
 void main() {
  
-vec3 out_color = vec3(0.);
-int aa = 2;
+vec3 color = vec3(0.);
 
-vec3 cam_target = u_cam_tar;
-vec3 cam_pos = vec3(.0);
-cam_pos = u_cam_pos;
+vec3 cam_target = vec3(0.0);
+vec3 cam_pos = vec3(0.,3.,3.);
+cam_pos.xz *= rot2(u_time * 0.0001);
 
-for(int k = 0; k < aa; k++ ) {
-   for(int l = 0; l < aa; l++) {
-   
-       vec2 o = vec2(float(k),float(l)) / float(aa) * .5;
+vec3 lig_pos = vec3(5.,10.,10.);
 
-       vec2 uv = (gl_FragCoord.xy+o) / u_res.xy;
-       uv = uv * 2. - vec2(1.); 
-       uv.x *= u_res.x/u_res.y; 
+       vec2 uvu = -1. + 2. * uVu.xy;
+       
+       uvu.x *= u_resolution.x/u_resolution.y; 
 
-       vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
-       vec3 color = render(cam_pos,direction);
-      
-       out_color += color;  
+       vec3 direction = rayCamDir(uvu,cam_pos,cam_target,1.); 
 
-   }
-    
-   out_color /= float(aa*aa);
-   out_color = pow(out_color,vec3(.4545));      
-   out_FragColor = vec4(out_color,1.0);
- 
-}
+       vec2 d = rayScene(cam_pos,direction);
+
+       cam_pos += direction * d.x;
+       vec3 n = calcNormal(cam_pos);
+       
+       color = light(cam_pos,direction,n,lig_pos,d);
+       
+       float sh = shadow(cam_pos,normalize(lig_pos),0.005,250.);
+       direction = reflect(direction,n);
+       d.x += reflection(cam_pos + direction  * 0.01,direction,0.005,25.);
+       
+       cam_pos += direction  * d.x;
+       n = calcNormal(cam_pos);
+         
+       color += light(cam_pos,direction,n,lig_pos,d) * .25  ;
+       color *= sh + d.x * .005;
+
+       color = pow(color,vec3(.4545)); 
+       out_FragColor = vec4(color,1.0);  
 
 }
