@@ -9,8 +9,8 @@ frag = "frag.frag";
 path = filesystem::path("../../src");
 shader.load(path/"render.vert",path/frag);
 
-w = 1024;
-h = 1024;
+w = 512; 
+h = 512;
 
 ofSetWindowShape(w,h);
 
@@ -43,6 +43,9 @@ unit_cube = false;
 mouse.x = 0;
 mouse.y = 0;
 
+mouse_released_left = false;
+mouse_pressed_left = false;
+ 
 }
 
 void ofApp::draw() {
@@ -59,6 +62,9 @@ shader.setUniform3f("u_cam_tar",glm::vec3(cam.getTarget().getPosition()));
 
 shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 
+shader.setUniform1f("u_mouse_released_left",mouse_released_left); 
+shader.setUniform1f("u_mouse_pressed_left",mouse_pressed_left);
+
 cam.end();
 
 plane.set(w,h);
@@ -67,8 +73,6 @@ plane.setPosition(w/2,h/2,0);
 plane.draw();
 
 shader.end();
-
-db.end();
 
 if(unit_cube) {
 ofNoFill();
@@ -121,18 +125,23 @@ void ofApp::keyPressed(int key) {
 }
 
 void ofApp::mousePressed(int x,int y,int button) {
+
+    if(button == 0) { 
+    mouse_pressed_left = true;  
+    }
 }
 
 void ofApp::mouseReleased(int x,int y,int button) {
-}
+
+    if(button == 0) {
+    mouse_released_left = true;
+    }
+
+} 
 
 void ofApp::mouseMoved(int x,int y) {
+
     mouse.x = x;
     mouse.y = y;
+
 }
-
-
-
-
-
-

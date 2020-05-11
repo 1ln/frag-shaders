@@ -12,8 +12,6 @@ uniform float u_time;
 uniform vec3 u_cam_pos;
 uniform vec3 u_cam_tar;
 
-//uniform sampler2D u_noise_tex;
-
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
 const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
@@ -414,10 +412,11 @@ float crossbox(vec3 p,float l,float d) {
 vec2 scene(vec3 p) { 
 
 vec2 res = vec2(1.0,0.0);
-vec3 q = vec3(p); 
-
-res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
-res = opu(res,vec2(octahedron(p,1.),2.));
+ 
+res = opu(res,vec2(smou(
+    octahedron(p,1.),
+    box(p,vec3(.5 )),
+    .01),2.));
 
 return res;
 
@@ -519,11 +518,10 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
 vec3 render(vec3 ro,vec3 rd) {
 
 float t = u_time;
-
-//vec3 col = vec3(.5,1.,) - max(rd.y+ns,0.); 
+ 
 vec2 d = rayScene(ro, rd);
 
-vec3 cf = vec3(0.);                         
+vec3 cf = vec3(1.);                         
 vec3 col = cf - max(rd.y,0.);
 
 if(d.y >= 0.) {
@@ -553,7 +551,8 @@ col += vec3(.5);
 }
 
 col = col * linear;
-col += 5. * spe * vec3(1.,.5,.9);
+col += 5. * spe;
+col = mix(col,cf,1. - exp(-0.0001 * d.x * d.x * d.x));
 
 }
 
@@ -566,8 +565,7 @@ vec3 out_color = vec3(0.);
 int aa = 2;
 
 vec3 cam_target = u_cam_tar;
-vec3 cam_pos = vec3(.0);
-cam_pos = u_cam_pos;
+vec3 cam_pos = vec3(.0,.0,5.);
 
 for(int k = 0; k < aa; k++ ) {
    for(int l = 0; l < aa; l++) {

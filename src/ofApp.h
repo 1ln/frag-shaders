@@ -50,7 +50,9 @@ class ofApp : public ofBaseApp {
     bool unit_cube;
    
     ofVec2f mouse;
-
+    bool mouse_released_left;
+    bool mouse_pressed_left;
+    
     ofFileDialogResult res;
     filesystem::path path; 
 
