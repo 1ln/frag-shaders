@@ -365,11 +365,12 @@ float torus(vec3 p,vec2 t) {
 }
 
 float cylinder(vec3 p,float h,float r) {
-    
+
     float d = length(vec2(p.x,p.z)) - r;
     d = max(d, -p.y - h);
     d = max(d, p.y - h);
     return d; 
+
 }
 
 float hexPrism(vec3 p,vec2 h) {
@@ -421,7 +422,11 @@ return max(-torus(p,vec2(1.5,1./PHI)),box(p,vec3(1.)));
 }
 
 float cybox(vec3 p) { 
-return max(-cylinder(p,vec2(1.,.5)),box(p,vec3(1.)));
+return max(-cylinder(p,1.1,.5),box(p,vec3(1.)));
+}
+
+float wedge(vec3 p,float l) {
+return max(-plane(p,vec4(-1.,-1.,-1.,1.) + l),box(p,vec3(1.))); 
 }
 
 vec2 scene(vec3 p) { 
@@ -440,7 +445,7 @@ if(h.x < .1) {
 res = opu(res,vec2(box(q,vec3(1.)),2.)); 
 }
 
-res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
+res = opu(res,vec2(plane(p,vec4(0,1,0,1)),1.));
 return res;
 
 }
@@ -494,7 +499,7 @@ float shadow(vec3 ro,vec3 rd ) {
     float t = 0.005;
     float ph = 1e10;
     
-    for(int i = 0; i < 35; i++ ) {
+    for(int i = 0; i < 135; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
@@ -504,7 +509,7 @@ float shadow(vec3 ro,vec3 rd ) {
         ph = h;
         t += h;
     
-        if(res < 0.001 || t > 5. ) { break; }
+        if(res < 0.001 || t > 45. ) { break; }
 
         }
 
@@ -564,7 +569,7 @@ vec3 linear = vec3(0.);
 dif *= shadow(p,l);
 ref *= shadow(p,r);
 
-linear += dif * vec3(0.,1.,0.);
+linear += dif * vec3(.45); 
 linear += amb * vec3(0.02);
 linear += ref * vec3(1.);
 linear += fre * vec3(1.);
@@ -572,6 +577,10 @@ linear += fre * vec3(1.);
 if(d.y == 1.) {
 col += vec3(.5);
 }
+
+if(d.y == 2.) {
+col += vec3(1.,.5,.25);
+} 
 
 col = col * linear;
 col += 5. * spe * vec3(1.,.5,.9);
