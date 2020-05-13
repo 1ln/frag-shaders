@@ -18,11 +18,12 @@ const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
 const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
 
-//15551*89491 = 1391674541
 float hash(float p) {
-    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0);
-    uint h = (n.x ^ n.y) * 1391674541U;
-    return float(h) * (1.0/float(0xffffffffU));
+return fract(sin(p) * 4358.5453);
+}
+
+float hash(vec2 p) {
+return fract(sin(dot(p.xy,vec2(12.9898,78.233))) * 43758.5357); 
 }
 
 vec3 hash3(vec3 p) {
@@ -411,14 +412,35 @@ float crossbox(vec3 p,float l,float d) {
     return min(b0,min(b1,b2));
 } 
 
+float phibox(vec3 p) {
+return max(-sphere(p,1.35),box(p,vec3(1.)));
+}
+
+float torsine(vec3 p) {
+return max(-torus(p,vec2(1.5,1./PHI)),box(p,vec3(1.)));  
+}
+
+float cybox(vec3 p) { 
+return max(-cylinder(p,vec2(1.,.5)),box(p,vec3(1.)));
+}
+
 vec2 scene(vec3 p) { 
 
 vec2 res = vec2(1.0,0.0);
+
 vec3 q = vec3(p); 
 
-res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
-res = opu(res,vec2(octahedron(p,1.),2.));
+float s = 5.; 
+vec3 loc = floor(p/s);
 
+q.xz = mod(q.xz,s) - .5 * s;
+vec3 h = vec3(hash(loc.xz),hash(loc.y),hash(loc.xz));  
+
+if(h.x < .1) {
+res = opu(res,vec2(box(q,vec3(1.)),2.)); 
+}
+
+res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
 return res;
 
 }
@@ -428,7 +450,7 @@ vec2 rayScene(vec3 ro,vec3 rd) {
     float depth = 0.0;
     float d = -1.0;
 
-    for(int i = 0; i < 100; i++) {
+    for(int i = 0; i < 1000; i++) {
 
         vec3 p = ro + depth * rd;
         vec2 dist = scene(p);
@@ -464,7 +486,7 @@ float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
 
     if(dmax <= depth ) { return dmax; }
     return dmax;
-}
+} 
 
 float shadow(vec3 ro,vec3 rd ) {
 
@@ -520,10 +542,9 @@ vec3 render(vec3 ro,vec3 rd) {
 
 float t = u_time;
 
-//vec3 col = vec3(.5,1.,) - max(rd.y+ns,0.); 
 vec2 d = rayScene(ro, rd);
 
-vec3 cf = vec3(0.);                         
+vec3 cf = vec3(1.);                         
 vec3 col = cf - max(rd.y,0.);
 
 if(d.y >= 0.) {
