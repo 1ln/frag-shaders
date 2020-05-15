@@ -429,20 +429,61 @@ float wedge(vec3 p,float l) {
 return max(-plane(p,vec4(-1.,-1.,-1.,1.) + l),box(p,vec3(1.))); 
 }
 
+float boxrepeat(vec3 p,float s,float c,vec3 n,float l ) {
+    p = repeatLimit(p/l,c,n)*l;
+    return box(p/l,vec3(s)) *l;  
+}
+
+float menger(vec3 p) {
+
+    float b = box(p,vec3(1.));
+    float s = 1.;
+    
+    for(int i = 0; i < 3; i++) {
+
+        vec3 a = mod(p * s,2.)- 1.;
+        s *= 3.;
+
+        vec3 r = abs(1. - 3. * abs(a));
+
+        float b0 = max(r.x,r.y);        
+        float b1 = max(r.y,r.z);
+        float b2 = max(r.z,r.x);
+        
+        float c = (min(b0,min(b1,b2)) - 1. )/s;
+        b = max(b,c);
+    }
+
+    return b;  
+    
+}
+
 vec2 scene(vec3 p) { 
 
 vec2 res = vec2(1.0,0.0);
 
 vec3 q = vec3(p); 
 
-float s = 5.; 
+float s = 5.;
 vec3 loc = floor(p/s);
 
 q.xz = mod(q.xz,s) - .5 * s;
-vec3 h = vec3(hash(loc.xz),hash(loc.y),hash(loc.xz));  
+vec3 h = vec3(hash(loc.xz),hash(loc.y),hash(loc.xz));
 
-if(h.x < .1) {
+if(h.x < .05   ) {
 res = opu(res,vec2(box(q,vec3(1.)),2.)); 
+}
+
+if(h.x > .05 && h.x < .1) {
+res = opu(res,vec2(phibox(q),2.));
+} 
+
+if(h.x > .1 && h.x < .15) {
+res = opu(res,vec2(torsine(q),2.));
+}
+
+if(h.x > .15 && h.x < .2) {
+res = opu(res,vec2(cybox(q),2.));
 }
 
 res = opu(res,vec2(plane(p,vec4(0,1,0,1)),1.));
