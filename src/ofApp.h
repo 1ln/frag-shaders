@@ -1,16 +1,6 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxGui.h"
-
-/*
-#include "hash.h"
-#include "noise.h"
-
-#include "gridBoxes.h"
-#include "concentricCircles.h"
-#include "stackedCircles.h"
-*/
 
 class ofApp : public ofBaseApp {
 
@@ -31,10 +21,18 @@ class ofApp : public ofBaseApp {
     int w;
     int h;
 
+    int imgw;
+    int imgh;
+    ofFbo imgbuff;
+    ofPixels px;
+    ofImage img;
+
     string screen_size; 
 
     ofPlanePrimitive plane;
+
     ofBoxPrimitive box;
+    bool unit_cube;
     
     ofEasyCam cam;
 
@@ -43,11 +41,9 @@ class ofApp : public ofBaseApp {
     ofFbo db;
     ofFbo::Settings db_settings;
 
-    ofShader shader;
-    ofImage img;      
+    ofShader shader;      
 
     bool info;
-    bool unit_cube;
    
     ofVec2f mouse;
     bool mouse_released_left;
