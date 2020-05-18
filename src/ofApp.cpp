@@ -55,16 +55,20 @@ mouse_pressed_left = false;
 
 void ofApp::draw() {
 
-imgbuff.begin();
-ofClear(0);
+//imgbuff.begin();
+//ofClear(0);
 
 shader.begin();
 cam.begin();
 
 shader.setUniform1f("u_time",ofGetElapsedTimeMillis());
+shader.setUniform1f("u_dtime",ofGetLastFrameTime());
+
 shader.setUniform2f("u_res",w,h);
+
 shader.setUniform3f("u_cam_pos",glm::vec3(cam.getPosition()));
 shader.setUniform3f("u_cam_tar",glm::vec3(cam.getTarget().getPosition())); 
+
 shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 shader.setUniform1f("u_mouse_released_left",mouse_released_left); 
 shader.setUniform1f("u_mouse_pressed_left",mouse_pressed_left);
@@ -77,7 +81,8 @@ plane.setPosition(w/2,h/2,0);
 plane.draw();
 
 shader.end();
-imgbuff.end();
+
+//imgbuff.end();
 
 if(unit_cube) {
 ofNoFill();
@@ -88,8 +93,8 @@ ofDrawBox(glm::vec3(0),1.);
 
 void ofApp::update() {
 
-imgbuff.readToPixels(px);
-ofSaveImage(px,"../.. " + frag + ".png"); 
+//imgbuff.readToPixels(px);
+//ofSaveImage(px,"../.. " + frag + ".png"); 
 
 if(info) {
     printInfo();
