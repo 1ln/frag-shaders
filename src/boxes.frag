@@ -402,7 +402,7 @@ float octahedron(vec3 p,float s) {
 
     float k = clamp(0.5 *(q.z-q.y+s),0.0,s);
     return length(vec3(q.x,q.y-s+k,q.z - k)); 
-}
+} 
 
 float crossbox(vec3 p,float l,float d) {
 
@@ -413,50 +413,13 @@ float crossbox(vec3 p,float l,float d) {
     return min(b0,min(b1,b2));
 } 
 
-float phibox(vec3 p) {
-return max(-sphere(p,1.35),box(p,vec3(1.)));
+float boxfold(vec3 p,float s) {
+return max(-box(p,vec3(s,s,1e10)),box(p,vec3(1.)));
 }
 
-float torsine(vec3 p) {
-return max(-torus(p,vec2(1.5,1./PHI)),box(p,vec3(1.)));  
-}
-
-float cybox(vec3 p) { 
-return max(-cylinder(p,1.1,.5),box(p,vec3(1.)));
-}
-
-float wedge(vec3 p,float l) {
-return max(-plane(p,vec4(-1.,-1.,-1.,1.) + l),box(p,vec3(1.))); 
-}
-
-float boxrepeat(vec3 p,float s,float c,vec3 n,float l ) {
-    p = repeatLimit(p/l,c,n)*l;
-    return box(p/l,vec3(s)) *l;  
-}
-
-float menger(vec3 p) {
-
-    float b = box(p,vec3(1.));
-    float s = 1.;
-    
-    for(int i = 0; i < 3; i++) {
-
-        vec3 a = mod(p * s,2.)- 1.;
-        s *= 3.;
-
-        vec3 r = abs(1. - 3. * abs(a));
-
-        float b0 = max(r.x,r.y);        
-        float b1 = max(r.y,r.z);
-        float b2 = max(r.z,r.x);
-        
-        float c = (min(b0,min(b1,b2)) - 1. )/s;
-        b = max(b,c);
-    }
-
-    return b;  
-    
-}
+float cornerbox(vec3 p,float d) { 
+return max(-box(p - vec3(d),vec3(1.)),box(p,vec3(1.)));
+} 
 
 vec2 scene(vec3 p) { 
 
@@ -475,15 +438,11 @@ res = opu(res,vec2(box(q,vec3(1.)),2.));
 }
 
 if(h.x > .05 && h.x < .1) {
-res = opu(res,vec2(phibox(q),2.));
+res = opu(res,vec2(boxfold(q,.5),2.));
 } 
 
-if(h.x > .1 && h.x < .15) {
-res = opu(res,vec2(torsine(q),2.));
-}
-
-if(h.x > .15 && h.x < .2) {
-res = opu(res,vec2(cybox(q),2.));
+if(h.x > .1 && h.x < 1.) {
+res = opu(res,vec2(cornerbox(q,.1),2.));
 }
 
 res = opu(res,vec2(plane(p,vec4(0,1,0,1)),1.));
@@ -516,23 +475,6 @@ vec3 fog(vec3 c,vec3 fc,float b,float distance) {
     float depth = 1. - exp(-distance *b);
     return mix(c,fc,depth);
 }
-
-float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
-
-    float depth = dmin;
-    float d = -1.0;
-
-    for(int i = 0; i < 5; i++ ) {
-        float h = scene(ro + rd * depth).x;
-
-        if(h < 0.0001   ) { return depth; }
-        
-        depth += h;
-    }
-
-    if(dmax <= depth ) { return dmax; }
-    return dmax;
-} 
 
 float shadow(vec3 ro,vec3 rd ) {
 
@@ -637,8 +579,7 @@ vec3 out_color = vec3(0.);
 int aa = 2;
 
 vec3 cam_target = u_cam_tar;
-vec3 cam_pos = vec3(.0);
-cam_pos = u_cam_pos;
+vec3 cam_pos = vec3(45.,75.,245.);
 
 for(int k = 0; k < aa; k++ ) {
    for(int l = 0; l < aa; l++) {
@@ -649,7 +590,7 @@ for(int k = 0; k < aa; k++ ) {
        uv = uv * 2. - vec2(1.); 
        uv.x *= u_res.x/u_res.y; 
 
-       vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
+       vec3 direction = rayCamDir(uv,cam_pos,cam_target,35.); 
        vec3 color = render(cam_pos,direction);
       
        out_color += color;  
