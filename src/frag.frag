@@ -12,11 +12,16 @@ uniform float u_time;
 uniform vec3 u_cam_pos;
 uniform vec3 u_cam_tar;
 
-//uniform sampler2D u_noise_tex;
+uniform sampler2D ntex;
 
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
 const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
+
+const float eps = 0.001; 
+const int steps = 500;
+float dmin = 0.;
+float dmax = 100.;
 
 //15551*89491 = 1391674541
 float hash(float p) {
@@ -136,6 +141,7 @@ float sincPhase(float x,float k) {
 
     float a = PI * (k * x - 1.0);
     return sin(a)/a;
+
 }
 
 vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
@@ -144,14 +150,19 @@ vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
 }
 
 float easeIn4(float t) {
+
     return t * t;
+
 }
 
 float easeOut4(float t) {
+
     return -1.0 * t * (t - 2.0);
+
 }
 
 float easeInOut4(float t) {
+
     if((t *= 2.0) < 1.0) {
         return 0.5 * t * t;
     } else {
@@ -160,18 +171,24 @@ float easeInOut4(float t) {
 }
 
 float easeIn3(float t) {
+
     return t * t * t;
+
 }
 
 float easeOut3(float t) {
+
     return (t = t - 1.0) * t * t + 1.0;
+
 }
 
 float easeInOut3(float t) {
+
     if((t *= 2.0) < 1.0) {
         return 0.5 * t * t * t;
     } else { 
         return 0.5 * ((t -= 2.0) * t * t + 2.0);
+
     }
 }
 
@@ -192,10 +209,20 @@ axis = normalize(axis);
 
     float oc = 1.0 - c;
 
-    return mat4( 
-        oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0.0,
-        oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0.0,
-        oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0.0,
+    return mat4(
+ 
+        oc * axis.x * axis.x + c, 
+        oc * axis.x * axis.y - axis.z * s,
+        oc * axis.z * axis.x + axis.y * s, 
+        0.0,
+        oc * axis.x * axis.y + axis.z * s,
+        oc * axis.y * axis.y + c, 
+        oc * axis.y * axis.z - axis.x * s,
+        0.0,
+        oc * axis.z * axis.x - axis.y * s,
+        oc * axis.y * axis.z + axis.x * s, 
+        oc * axis.z * axis.z + c, 
+        0.0,
         0.0,0.0,0.0,1.0);
 
 }
@@ -220,12 +247,6 @@ vec3 repeat(vec3 p,vec3 s) {
    
     vec3 q = mod(p,s) - 0.5 * s;
     return q;
-}
-
-vec3 pmod(inout vec3 p,vec3 s) {
-    vec3 c = floor(( p + s * 0.5 ) / s );
-    p = mod(p + s * 0.5,s ) - s * 0.5;
-    return c;
 }
 
 float refx(vec3 p) {
@@ -425,22 +446,21 @@ return res;
 
 vec2 rayScene(vec3 ro,vec3 rd) {
     
-    float depth = 0.0;
     float d = -1.0;
 
-    for(int i = 0; i < 100; i++) {
+    for(int i = 0; i < steps; i++) {
 
-        vec3 p = ro + depth * rd;
+        vec3 p = ro + dmin * rd;
         vec2 dist = scene(p);
    
-        if(abs( dist.x) < 0.001 || 500. <  dist.x ) { break; }
-        depth += dist.x;
+        if(abs(dist.x) < eps || dmax <  dist.x ) { break; }
+        dmin += dist.x;
         d = dist.y;
 
         }
  
-        if(500. < depth) { d = -1.0; }
-        return vec2(depth,d);
+        if(dmax < dmin) { d = -1.0; }
+        return vec2(dmin,d);
 
 }
 
@@ -492,7 +512,7 @@ float shadow(vec3 ro,vec3 rd ) {
 
 vec3 calcNormal(vec3 p) {
 
-    vec2 e = vec2(1.0,-1.0) * 0.001;
+    vec2 e = vec2(1.0,-1.0) * eps;
 
     return normalize(vec3(
     vec3(e.x,e.y,e.y) * scene(p + vec3(e.x,e.y,e.y)).x +
@@ -501,7 +521,7 @@ vec3 calcNormal(vec3 p) {
     vec3(e.x,e.x,e.x) * scene(p + vec3(e.x,e.x,e.x)).x
 
     ));
-
+    
 }
 
 vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
@@ -516,11 +536,19 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
      return vDir;
 }
 
+vec3 renderNormals(vec3 ro,vec3 rd) {
+
+   vec2 d = rayScene(ro,rd);
+   vec3 p = ro + rd * d.x;
+   vec3 n = calcNormal(p);   
+   vec3 col = vec3(n);
+   return col;
+}
+
 vec3 render(vec3 ro,vec3 rd) {
 
 float t = u_time;
-
-//vec3 col = vec3(.5,1.,) - max(rd.y+ns,0.); 
+ 
 vec2 d = rayScene(ro, rd);
 
 vec3 cf = vec3(0.);                         
@@ -579,8 +607,8 @@ for(int k = 0; k < aa; k++ ) {
        uv.x *= u_res.x/u_res.y; 
 
        vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
-       vec3 color = render(cam_pos,direction);
-      
+       vec3 color = render(cam_pos,direction);      
+
        out_color += color;  
 
    }
