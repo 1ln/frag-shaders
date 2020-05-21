@@ -12,16 +12,31 @@ uniform float u_time;
 uniform vec3 u_cam_pos;
 uniform vec3 u_cam_tar;
 
-uniform sampler2D ntex;
+uniform vec2 u_mouse_pos;
+uniform int u_mouse_left;
+uniform int u_mouse_right;
+
+uniform sampler2DRect ntex;
 
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
+const float 2PI =  PI * 2; 
 const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
+
+const int aa = 1;
 
 const float eps = 0.001; 
 const int steps = 500;
 float dmin = 0.;
 float dmax = 100.;
+
+const int shsteps = 145;
+float shmax = 15.;
+float shblur = 10.;  
+
+vec2 grid(vec2 uv,float s) {
+return fract(uv*s);
+}
 
 //15551*89491 = 1391674541
 float hash(float p) {
@@ -247,11 +262,6 @@ vec3 repeat(vec3 p,vec3 s) {
    
     vec3 q = mod(p,s) - 0.5 * s;
     return q;
-}
-
-float refx(vec3 p) {
-    
-   return p.x = abs(p.x);
 } 
 
 vec2 opu(vec2 d1,vec2 d2) {
@@ -447,20 +457,22 @@ return res;
 vec2 rayScene(vec3 ro,vec3 rd) {
     
     float d = -1.0;
+    float s = dmin;
+    float e = dmax;  
 
     for(int i = 0; i < steps; i++) {
 
-        vec3 p = ro + dmin * rd;
+        vec3 p = ro + s * rd;
         vec2 dist = scene(p);
    
-        if(abs(dist.x) < eps || dmax <  dist.x ) { break; }
-        dmin += dist.x;
+        if(abs(dist.x) < eps || e <  dist.x ) { break; }
+        s += dist.x;
         d = dist.y;
 
         }
  
-        if(dmax < dmin) { d = -1.0; }
-        return vec2(dmin,d);
+        if(e < s) { d = -1.0; }
+        return vec2(s,d);
 
 }
 
@@ -492,17 +504,17 @@ float shadow(vec3 ro,vec3 rd ) {
     float t = 0.005;
     float ph = 1e10;
     
-    for(int i = 0; i < 35; i++ ) {
+    for(int i = 0; i < shsteps; i++ ) {
         
         float h = scene(ro + rd * t  ).x;
 
         float y = h * h / (2. * ph);
         float d = sqrt(h*h-y*y);         
-        res = min(res,10. * d/max(0.,t-y));
+        res = min(res,shblur * d/max(0.,t-y));
         ph = h;
         t += h;
     
-        if(res < 0.001 || t > 5. ) { break; }
+        if(res < eps || t > shmax) { break; }
 
         }
 
@@ -536,12 +548,27 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
      return vDir;
 }
 
+vec3 renderColor(vec3 ro,vec3 rd) {
+
+    vec2 d = rayScene(ro,rd);     
+    vec3 col = vec3(0.);
+
+    if(d.x > dmax - eps) {
+        col = vec3(0.);
+    } else {
+        col = vec3(1.);
+    }
+    
+    return col;
+}
+
 vec3 renderNormals(vec3 ro,vec3 rd) {
 
    vec2 d = rayScene(ro,rd);
    vec3 p = ro + rd * d.x;
    vec3 n = calcNormal(p);   
    vec3 col = vec3(n);
+   
    return col;
 }
 
@@ -591,7 +618,6 @@ return col;
 void main() {
  
 vec3 out_color = vec3(0.);
-int aa = 2;
 
 vec3 cam_target = u_cam_tar;
 vec3 cam_pos = vec3(.0);
