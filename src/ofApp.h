@@ -20,14 +20,16 @@ class ofApp : public ofBaseApp {
 
     int w;
     int h;
+    ofFbo b;
 
     int imgw;
     int imgh;
-    ofFbo imgbuff;
+    ofFbo ib;
     ofPixels px;
     ofImage img;
-
     string screen_size; 
+
+    ofFbo d;
 
     ofPlanePrimitive plane;
 
