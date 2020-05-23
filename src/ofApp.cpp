@@ -21,6 +21,8 @@ b.allocate(w,h);
 b.getTexture().getTextureData().bFlipTexture = true;
 
 d.allocate(16,16);
+d.getTexture().disableMipmap();
+d.getTexture().setTextureMinMagFilter(GL_NEAREST,GL_NEAREST);
 
 ib.allocate(imgw,imgh);
 
@@ -85,7 +87,7 @@ shader.setUniform2f("u_mouse_pos",mouse.x,mouse.y);
 shader.setUniform1i("u_mouse_le",mouse_le); 
 shader.setUniform1i("u_mouse_ri",mouse_ri);
 shader.setUniform1f("u_sclx",scroll.x);
-shader.setUniform1f("u_scly",scrool.y);
+shader.setUniform1f("u_scly",scroll.y);
 
 shader.setUniformTexture("dtex",d.getTexture(0),0);
 

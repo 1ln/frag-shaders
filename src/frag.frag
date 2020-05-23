@@ -1,10 +1,10 @@
-#version 150
+#version 330     
 
 // dolson,2019
 
 //precision mediump float;
 
-out vec4 out_FragColor; 
+layout(location = 0) out vec4 out_FragColor; 
 
 uniform vec2 u_res;
 uniform float u_time;
@@ -20,7 +20,7 @@ uniform sampler2DRect ntex;
 
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
-const float 2PI =  PI * 2; 
+const float PI2 =  PI * 2.;
 const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
 
 const int aa = 1;

@@ -11,9 +11,12 @@ class ofApp : public ofBaseApp {
     void update();  
 
     void keyPressed(int key);
+
     void mouseMoved(int x,int y);   
     void mousePressed(int x, int y,int button);
     void mouseReleased(int x,int y,int button);
+    void mouseScrolled(int x,int y,float scrollX,float scrollY);
+
     void windowResized(int w,int h); 
 
     void printInfo();
@@ -48,9 +51,11 @@ class ofApp : public ofBaseApp {
     bool info;
    
     ofVec2f mouse;
-    bool mouse_released_left;
-    bool mouse_pressed_left;
+    bool mouse_le;
+    bool mouse_ri;
     
+    ofVec2f scroll;
+
     ofFileDialogResult res;
     filesystem::path path; 
 
