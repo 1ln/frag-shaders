@@ -13,8 +13,10 @@ uniform vec3 u_cam_pos;
 uniform vec3 u_cam_tar;
 
 uniform vec2 u_mouse_pos;
-uniform int u_mouse_left;
-uniform int u_mouse_right;
+uniform int u_mouse_le;
+uniform int u_mouse_ri;
+uniform float u_sclx;
+uniform float u_scly;
 
 uniform sampler2DRect ntex;
 
@@ -251,7 +253,7 @@ mat4 translate(vec3 p) {
         vec4(0,0,0,1)  
 );
 }
-
+ 
 vec3 repeatLimit(vec3 p,float c,vec3 l) {
   
     vec3 q = p - c * clamp( floor((p/c)+0.5) ,-l,l);
