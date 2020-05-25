@@ -8,6 +8,7 @@ layout(location = 0) out vec4 out_FragColor;
 
 uniform vec2 u_res;
 uniform float u_time;
+uniform float u_dtime;
 
 uniform vec3 u_cam_pos;
 uniform vec3 u_cam_tar;
@@ -19,6 +20,9 @@ uniform float u_sclx;
 uniform float u_scly;
 
 uniform sampler2DRect ntex;
+uniform sampler2DRect rtex;
+
+uniform sampler2DRect dtex;
 
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
@@ -134,6 +138,13 @@ float sin3(vec3 p,float h) {
     return sin(p.x*h) * sin(p.y*h) * sin(p.z*h);
 }
 
+float fib(float n) {
+
+    return pow(( 1. + sqrt(5.)) /2.,n) -
+           pow(( 1. - sqrt(5.)) /2.,n) / sqrt(5.); 
+
+}
+
 float envImpulse(float x,float k) {
 
     float h = k * x;
@@ -143,6 +154,7 @@ float envImpulse(float x,float k) {
 float envStep(float x,float k,float n) {
 
     return exp(-k * pow(x,n));
+
 }
 
 float cubicImpulse(float x,float c,float w) {
@@ -164,6 +176,16 @@ float sincPhase(float x,float k) {
 vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
     
     return a + b * cos( (PI*2.0) * (c * t + d));
+}
+
+vec3 rgbHsv(vec3 c) {
+
+    vec3 rgb = clamp(abs(mod(c.x * 6. + vec3(0.,4.,2.),
+               6.)-3.),-1.,0.,1.);
+
+    rgb = rgb * rgb * (3. - 2. * rgb);
+    return c.z * mix(vec3(1.),rgb,c.y);
+
 }
 
 float easeIn4(float t) {
@@ -254,10 +276,25 @@ mat4 translate(vec3 p) {
 );
 }
  
+vec3 camRotateScene(vec3 p) {
+
+    vec2 m = u_mouse_pos.xy / u_res.xy; 
+
+    mat4 mx = rotAxis(vec3(1.,0.,0.),PI2 * m.x);
+    mat4 my = rotAxis(vec3(0.,1.,0.),PI2 * m.y);
+
+    return (vec4(p,1.) * mx * my).xyz;
+ 
+}
+
 vec3 repeatLimit(vec3 p,float c,vec3 l) {
   
     vec3 q = p - c * clamp( floor((p/c)+0.5) ,-l,l);
     return q; 
+}
+
+vec2 repeat(vec2 p,float s) {
+     return mod(p.xz,s) - .5 * s;
 }
 
 vec3 repeat(vec3 p,vec3 s) {
@@ -265,6 +302,10 @@ vec3 repeat(vec3 p,vec3 s) {
     vec3 q = mod(p,s) - 0.5 * s;
     return q;
 } 
+
+vec3 id(vec3 p,float s) {
+    return floor(p/s);
+}
 
 vec2 opu(vec2 d1,vec2 d2) {
 
@@ -302,11 +343,27 @@ float smoi(float d1,float d2,float k) {
 
     float h = clamp(0.5 + 0.5 * (d2-d1)/k,0.0,1.0);
     return mix(d2,d1,h) + k * h * (1.0 - h);
+
 }
 
 float layer(float d,float h) {
 
     return abs(d) - h;
+}
+
+float circle(vec2 p,float r) {
+    return length(p) - r;
+}
+
+float rect(vec2 p,vec2 b) {
+    vec2 d = abs(p)-b;
+    return length(max(d,0.)) + min(max(d.x,d.y),0.);
+}
+
+float segment(vec2 p,vec2 a,vec2 b) {
+    vec2 pa = p - a, ba = b - a;
+    float h = clamp(dot(pa,ba)/dot(ba,ba),0.,1.);  
+    return length(pa - ba * h);
 }
 
 float sphere(vec3 p,float r) { 
@@ -497,6 +554,22 @@ float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
     }
 
     if(dmax <= depth ) { return dmax; }
+    return dmax;
+}
+
+float glow(vec3 ro,vec3 rd,float dmin,float dmax) {
+
+    float depth = dmin;
+    float d = -1.; 
+
+    for(int i = 0; i < steps; i++) {
+        float h = scene(ro + rd * depth).x;
+       
+        if(h < eps) { return depth; }
+        depth += h;
+    }
+
+    if(dmax <= depth) { return dmax; }
     return dmax;
 }
 
