@@ -44,11 +44,19 @@ vec2 grid(vec2 uv,float s) {
 return fract(uv*s);
 }
 
-//15551*89491 = 1391674541
+float hash(float p) { return fract(sin(p) * 4358.5453); }
+float hash(vec2 p) { return fract(sin(dot(vec2(12.9898,78.233))) * 43758.5357); }
+
 float hash(float p) {
     uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0);
     uint h = (n.x ^ n.y) * 1391674541U;
-    return float(h) * (1.0/float(0xffffffffU));
+    return float(h) * (1./float(0xffffffffU));
+}
+
+float hash(vec2 p) {
+    uvec2 n = uvec2(ivec2(p)) * uvec2(1391674541U,2531151992.0);
+    uint h = (n.x ^ n.y) * 1391674541U;
+    return float(h) * (1./float(0xffffffffU));
 }
 
 vec3 hash3(vec3 p) {
@@ -112,8 +120,7 @@ float noise(vec3 x) {
                    mix(hash(  n + 270.0) , hash(   n + 271.0)   ,f.x),f.y),f.z);
 }
 
-
-float fractal(vec3 x,int octaves,float h) {
+float f3(vec3 x,int octaves,float h) {
 
     float t = 0.0;
 
@@ -145,19 +152,19 @@ float fib(float n) {
 
 }
 
-float envImpulse(float x,float k) {
+float envImp(float x,float k) {
 
     float h = k * x;
     return h * exp(1.0 - h);
 }
 
-float envStep(float x,float k,float n) {
+float envSt(float x,float k,float n) {
 
     return exp(-k * pow(x,n));
 
 }
 
-float cubicImpulse(float x,float c,float w) {
+float cubicImp(float x,float c,float w) {
 
     x = abs(x - c);
     if( x > w) { return 0.0; }
@@ -166,7 +173,7 @@ float cubicImpulse(float x,float c,float w) {
 
 }
 
-float sincPhase(float x,float k) {
+float sincPh(float x,float k) {
 
     float a = PI * (k * x - 1.0);
     return sin(a)/a;
@@ -181,7 +188,7 @@ vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
 vec3 rgbHsv(vec3 c) {
 
     vec3 rgb = clamp(abs(mod(c.x * 6. + vec3(0.,4.,2.),
-               6.)-3.),-1.,0.,1.);
+               6.)-3.)-1.,0.,1.);
 
     rgb = rgb * rgb * (3. - 2. * rgb);
     return c.z * mix(vec3(1.),rgb,c.y);
@@ -294,7 +301,8 @@ vec3 repeatLimit(vec3 p,float c,vec3 l) {
 }
 
 vec2 repeat(vec2 p,float s) {
-     return mod(p.xz,s) - .5 * s;
+     vec2 q = mod(p,s) - .5 * s;
+     return q;
 }
 
 vec3 repeat(vec3 p,vec3 s) {
@@ -344,6 +352,28 @@ float smoi(float d1,float d2,float k) {
     float h = clamp(0.5 + 0.5 * (d2-d1)/k,0.0,1.0);
     return mix(d2,d1,h) + k * h * (1.0 - h);
 
+}
+
+vec4 el(vec3 p,vec3 h) {
+    vec3 q = abs(p) - h;
+    return vec4(max(q,0.),min(max(q.x,max(q.y,q.z),0.));
+}
+
+float extr(vec3 p,float d,float h) {
+    vec2 w = vec2(d,abs(p.xz) - h);
+    return min(max(w.x,w.y),0.) + length(max(w,0.)); 
+} 
+
+float rev(vec3 p,float w) {
+    return vec2(length(p.xz) - w,p.y);
+} 
+
+vec3 twist(vec3 p,float k) {
+    
+    float s = sin(k * p.y);
+    float c = cos(k * p.y);
+    mat2 m = mat2(c,-s,s,c);
+    return vec3(m * p.xz,p.y);
 }
 
 float layer(float d,float h) {
@@ -560,12 +590,19 @@ float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
 float glow(vec3 ro,vec3 rd,float dmin,float dmax) {
 
     float depth = dmin;
-    float d = -1.; 
+    float d = -1.;
+    float g = 0.; 
 
     for(int i = 0; i < steps; i++) {
         float h = scene(ro + rd * depth).x;
        
-        if(h < eps) { return depth; }
+        if(h < eps) {
+        g = float(i)/steps;
+        return g;
+        //return depth;
+        }
+
+
         depth += h;
     }
 
