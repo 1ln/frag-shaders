@@ -40,12 +40,15 @@ const int shsteps = 145;
 float shmax = 15.;
 float shblur = 10.;  
 
+const float fog_distance = 0.0001;
+const float fog_density = 3.;
+
 vec2 grid(vec2 uv,float s) {
 return fract(uv*s);
 }
 
-float hash(float p) { return fract(sin(p) * 4358.5453); }
-float hash(vec2 p) { return fract(sin(dot(vec2(12.9898,78.233))) * 43758.5357); }
+//float hash(float p) { return fract(sin(p) * 4358.5453); }
+//float hash(vec2 p) { return fract(sin(dot(vec2(12.9898,78.233))) * 43758.5357); }
 
 float hash(float p) {
     uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0);
@@ -106,7 +109,7 @@ float cell(vec3 x,float iterations,int type) {
 
 }
 
-float noise(vec3 x) {
+float n3(vec3 x) {
 
     vec3 p = floor(x);
     vec3 f = fract(x);
@@ -131,7 +134,7 @@ float f3(vec3 x,int octaves,float h) {
 
     for(int i = 0; i < octaves; i++) {
  
-    t += a * noise(f * x); 
+    t += a * n3(f * x); 
     f *= 2.0; 
     a *=  g;  
     
@@ -356,7 +359,7 @@ float smoi(float d1,float d2,float k) {
 
 vec4 el(vec3 p,vec3 h) {
     vec3 q = abs(p) - h;
-    return vec4(max(q,0.),min(max(q.x,max(q.y,q.z),0.));
+    return vec4(max(q,0.),min(max(q.x,max(q.y,q.z)),0.));
 }
 
 float extr(vec3 p,float d,float h) {
@@ -364,7 +367,7 @@ float extr(vec3 p,float d,float h) {
     return min(max(w.x,w.y),0.) + length(max(w,0.)); 
 } 
 
-float rev(vec3 p,float w) {
+vec2 rev(vec3 p,float w) {
     return vec2(length(p.xz) - w,p.y);
 } 
 
@@ -565,9 +568,16 @@ vec2 rayScene(vec3 ro,vec3 rd) {
 
 }
 
-vec3 fog(vec3 c,vec3 fc,float b,float distance) {
-    float depth = 1. - exp(-distance *b);
-    return mix(c,fc,depth);
+vec3 fog(vec3 col,vec3 fog_col) {
+    float fog_depth = 1. - exp(-fog_distance * fog_density);
+    return mix(col,fog_col,fog_depth);
+}
+
+vec3 scatter(vec3 col,vec3 tf,vec3 ts,vec3 rd,vec3 l) {
+    float fog_depth  = 1. - exp(-fog_distance * fog_density);
+    float light_depth = max(dot(rd,l),0.);
+    vec3 fog_col = mix(tf,ts,pow(light_depth,8.));
+    return mix(col,fog_col,light_depth);
 }
 
 float reflection(vec3 ro,vec3 rd,float dmin,float dmax ) {
