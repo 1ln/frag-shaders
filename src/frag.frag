@@ -24,10 +24,11 @@ uniform sampler2DRect rtex;
 
 uniform sampler2DRect dtex;
 
-const float E   =  2.7182818;
-const float PI  =  radians(180.0); 
-const float PI2 =  PI * 2.;
-const float PHI =  (1.0 + sqrt(5.0)) / 2.0;
+const float E    =  2.7182818;
+const float PI   =  radians(180.0); 
+const float PI2  =  PI * 2.;
+const float PHI  =  (1.0 + sqrt(5.0)) / 2.0;
+const float SQ32 = sqrt(3./2.);
 
 const int aa = 1;
 
@@ -42,10 +43,6 @@ float shblur = 10.;
 
 const float fog_distance = 0.0001;
 const float fog_density = 3.;
-
-vec2 grid(vec2 uv,float s) {
-return fract(uv*s);
-}
 
 //float hash(float p) { return fract(sin(p) * 4358.5453); }
 //float hash(vec2 p) { return fract(sin(dot(vec2(12.9898,78.233))) * 43758.5357); }
@@ -67,6 +64,47 @@ vec3 hash3(vec3 p) {
    h = (h.x ^ h.y ^ h.z) * uvec3(1391674541U,2531151992U,2860486313U);
    return vec3(h) * (1.0/float(0xffffffffU));
 
+}
+
+vec2 uvd() {
+   return gl_FragCoord.xy / u_res.xy;
+}
+
+vec2 grid(vec2 uv,float s) {
+    return fract(uv * s);
+}
+
+vec2 diag(vec2 uv) {
+   vec2 r = vec2(0.);
+   r.x = 1.1547 * uv.x;
+   r.y = uv.y + .5 * r.x;
+   return r;
+}
+
+vec3 simplexGrid(vec2 uv) {
+
+    vec3 q = vec3(0.);
+    vec2 p = fract(diag(uv));
+    
+    if(p.x > p.y) {
+        q.xy = 1. - vec2(p.x,p.y-p.x);
+        q.z = p.y;
+    } else {
+        q.yz = 1. - vec2(p.x-p.y,p.y);
+        q.x = p.x;
+    }
+    return q;
+
+}
+
+float radial(vec2 uv,float b) {
+    vec2 p = vec2(.5) - uv;
+    float a = atan(p.y,p.x);
+    return cos(a * b);
+}
+
+float sedge(float v) {
+    return smoothstep(0.,1. / u_res.x,v);
 }
  
 float cell(vec3 x,float iterations,int type) {
@@ -388,6 +426,15 @@ float circle(vec2 p,float r) {
     return length(p) - r;
 }
 
+float ring(vec2 p,float r,float w) {
+    return abs(length(p) - r) - w;
+}
+
+float eqTri(vec2 p,float r) { 
+    vec2 q = abs(p);
+    return max(q.x * SQ32 + p.y * .5,-p.y * .5) - r * .5;
+} 
+
 float rect(vec2 p,vec2 b) {
     vec2 d = abs(p)-b;
     return length(max(d,0.)) + min(max(d.x,d.y),0.);
@@ -539,8 +586,8 @@ vec2 scene(vec3 p) {
 vec2 res = vec2(1.0,0.0);
 vec3 q = vec3(p); 
 
-res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
-res = opu(res,vec2(octahedron(p,1.),2.));
+//res = opu(res,vec2(plane(q,vec4(0,1,0,1)),1.));
+res = opu(res,vec2(octahedron(p,1.),1.));
 
 return res;
 
@@ -700,8 +747,7 @@ float t = u_time;
  
 vec2 d = rayScene(ro, rd);
 
-vec3 cf = vec3(0.);                         
-vec3 col = cf - max(rd.y,0.);
+vec3 col = vec3(0.);
 
 if(d.y >= 0.) {
 
