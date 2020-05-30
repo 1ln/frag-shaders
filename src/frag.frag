@@ -440,6 +440,13 @@ float rect(vec2 p,vec2 b) {
     return length(max(d,0.)) + min(max(d.x,d.y),0.);
 }
 
+float roundRect(vec2 p,vec2 b,vec4 r) {
+    r.xy = (p.x > 0.) ? r.xy : r.xz;
+    r.x  = (p.y > 0.) ? r.x  : r.y;
+    vec2 q = abs(p) - b + r.x;
+    return min(max(q.x,q.y),0.) + length(max(q,0.)) - r.x;
+}
+
 float segment(vec2 p,vec2 a,vec2 b) {
     vec2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa,ba)/dot(ba,ba),0.,1.);  
@@ -531,6 +538,12 @@ float torus(vec3 p,vec2 t) {
 
     vec2 q = vec2(length(vec2(p.x,p.z)) - t.x,p.y);
     return length(q) - t.y; 
+}
+
+float capTorus(vec3 p,vec2 sc,float ra,float rb) {
+    p.x = abs(p.x);
+    float k = (sc.y * p.x > sc.x * p.y) ? dot(p.xy,sc) : length(p.xy);
+    return sqrt(dot(p,p) + ra*ra - 2.*k*ra) - rb;
 }
 
 float cylinder(vec3 p,float h,float r) {
