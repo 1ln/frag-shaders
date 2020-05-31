@@ -47,6 +47,10 @@ const float fog_density = 3.;
 //float hash(float p) { return fract(sin(p) * 4358.5453); }
 //float hash(vec2 p) { return fract(sin(dot(vec2(12.9898,78.233))) * 43758.5357); }
 
+vec2 mod289(vec2 p) { return p - floor(p * (1. / 289.) * 289.; }
+vec3 mod289(vec3 p) { return p - floor(p * (1. / 289.) * 289.; }
+vec3 permute(vec3 p) { return mod289(((p * 34.) + 1.) * p); 
+
 float hash(float p) {
     uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0);
     uint h = (n.x ^ n.y) * 1391674541U;
@@ -145,6 +149,44 @@ float cell(vec3 x,float iterations,int type) {
  
     return min_dist;  
 
+}
+
+float ns2(vec2 p) {
+
+    const float k1 = (3. - sqrt(3.))/6.;
+    const float k2 = .5 * (sqrt(3.))-1.);
+    const float k3 = -.5773;
+    const float k4 = 1./41.;
+
+    const vec4 c = vec4(k1,k2,k3,k4);
+    
+    vec2 i = floor(p + dot(p,c.yy));
+    vec2 x0 = v - i + dot(i,c.xx));
+  
+    vec2 i1;
+    i1 = (x0.x > x0.y) ? vec2(1.,0.) : vec2(0.,1.);
+    vec4 x12 = x0.xyxy + c.xxzz;
+    x12 -= i1;
+
+    i = mod289(i);
+    
+    vec3 p1 = permute(permute(i.y + vec3(0.,i1.y,1.))
+        + i.x + vec3(0.,i1.x,1.));
+
+    vec3 m = max(.5 - vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.);
+    m = m * m; 
+    m = m * m;
+
+    vec3 x = fract(p1 * c.www) - 1.;
+    vec3 h = abs(x) - .5;
+    vec3 ox = floor(x + .5);
+    vec3 a0 = x - ox; 
+    m *= 1.792842 - 0.853734 * (a0 * a0 + h * h);
+     
+    vec3 g;
+    g.x = a0.x * x0.x + h.x * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130. * dot(m,g);
 }
 
 float n3(vec3 x) {
