@@ -422,6 +422,10 @@ float layer(float d,float h) {
     return abs(d) - h;
 }
 
+float dot2(vec2 v) { return dot(v,v); }
+float dot2(vec3 v) { return dot(v,v); }
+float ndot(vec2 a,vec2 b) { return a.x * b.x - a.y * b.y; }
+
 float circle(vec2 p,float r) {
     return length(p) - r;
 }
@@ -430,9 +434,20 @@ float ring(vec2 p,float r,float w) {
     return abs(length(p) - r) - w;
 }
 
-float eqTri(vec2 p,float r) { 
-    vec2 q = abs(p);
-    return max(q.x * SQ32 + p.y * .5,-p.y * .5) - r * .5;
+float eqTriangle(vec2 p,float r) { 
+
+     const float k = sqrt(3.);
+
+     p.x = abs(p.x) - 1.;
+     p.y = p.y + 1./k;
+
+     if(p.x + k * p.y > 0.) {
+         p = vec2(p.x - k * p.y,-k * p.x - p.y)/2.;
+     }
+
+     p.x -= clamp(p.x,-2.,0.);
+     return -length(p) * sign(p.y);    
+
 } 
 
 float rect(vec2 p,vec2 b) {
@@ -445,6 +460,13 @@ float roundRect(vec2 p,vec2 b,vec4 r) {
     r.x  = (p.y > 0.) ? r.x  : r.y;
     vec2 q = abs(p) - b + r.x;
     return min(max(q.x,q.y),0.) + length(max(q,0.)) - r.x;
+}
+
+float rhombus(vec2 p,vec2 b) {
+   vec2 q = abs(p);
+   float h = clamp(-2. * ndot(q,b)+ndot(b,b)) / dot(b,b),-1.,1.);
+   float d = length(q - .5 * b * vec2(1.- h,1. + h));
+   return d * sign(q.x*b.y + q.y*b.x - b.x*b.y);  
 }
 
 float segment(vec2 p,vec2 a,vec2 b) {
