@@ -791,6 +791,15 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
      return vDir;
 }
 
+vec3 renderPhong(vec2 uv,vec3 n,vec3 light_pos,vec3 ambc,vec3 difc) {
+
+     vec3 ld = normalize(vec3(light_pos - vec3(uv,0.)));
+     float dif = max(0.,dot(n,ld));
+     vec3 ref = normalize(reflect(-ld,n));
+     float spe = pow(max(0.,dot(n,ref)),8.); 
+     return min(vec3(1.),ambc + difc * dif + spe);
+}
+
 vec3 renderColor(vec3 ro,vec3 rd) {
 
     vec2 d = rayScene(ro,rd);     
