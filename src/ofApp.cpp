@@ -30,7 +30,7 @@ void ofApp::draw() {
 
 shader.begin();
 
-shader.setUniform1f("time",ofGetElapsedTimeMillis());
+shader.setUniform1f("time",ofGetElapsedTimeMillis()/1000.);
 shader.setUniform1f("frame",ofGetLastFrameTime());
 shader.setUniform2f("resolution",w,h);
 shader.setUniform2f("mouse",mouse.x,mouse.y);
@@ -54,11 +54,10 @@ h = ofGetHeight();
 
 void ofApp::keyPressed(int key) {
 
-    if(key == 'i') { info = true; }
-
     if(key == 'g') {
         img.grabScreen(0,0,w,h);
-        img.save("../../ " + frag + ".png");
+        img.save("../../frag.png");
+
     }
 
     if(key == 'f') {
