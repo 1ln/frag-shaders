@@ -4,12 +4,9 @@
 
 out vec4 out_FragColor; 
 
-uniform vec2 u_res;
-uniform float u_time;
-
-uniform vec2 u_mouse_pos; 
-uniform int u_mouse_pressed_left;
-uniform int u_mouse_released_left;
+uniform vec2 resolution;
+uniform float time;
+uniform vec2 mouse;
 
 const float E   =  2.7182818;
 const float PI  =  radians(180.0);
@@ -90,14 +87,11 @@ vec2 scene(vec3 p) {
 
 vec2 res = vec2(1.0,0.0);
 
-vec2 m = u_mouse_pos / u_res.xy;
+vec2 m = mouse / resolution.xy;
 
 mat4 mx = rotAxis(vec3(1.,0.,0.),m.x * PI2); 
 mat4 my = rotAxis(vec3(0.,1.,0.),m.y * PI2); 
-
-//if(u_mouse_pressed_left == 1 && u_mouse_released_left != 0) {
 p = (vec4(p,1.) * mx * my).xyz; 
-//}
 
 res = opu(res,vec2(smou(
     octahedron(p,1.),
@@ -181,8 +175,6 @@ vec3 rayCamDir(vec2 uv,vec3 camPosition,vec3 camTarget,float fPersp) {
 
 vec3 render(vec3 ro,vec3 rd) {
 
-float t = u_time;
- 
 vec2 d = rayScene(ro, rd);
 
 vec3 cf = vec3(1.);                         
@@ -236,9 +228,9 @@ for(int k = 0; k < aa; k++ ) {
    
        vec2 o = vec2(float(k),float(l)) / float(aa) * .5;
 
-       vec2 uv = (gl_FragCoord.xy+o) / u_res.xy;
+       vec2 uv = (gl_FragCoord.xy+o) / resolution.xy;
        uv = uv * 2. - vec2(1.); 
-       uv.x *= u_res.x/u_res.y; 
+       uv.x *= resolution.x/resolution.y; 
 
        vec3 direction = rayCamDir(uv,cam_pos,cam_target,1.); 
        vec3 color = render(cam_pos,direction);

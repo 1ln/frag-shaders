@@ -6,13 +6,8 @@
 
 out vec4 out_FragColor; 
 
-uniform vec2 u_res;
-uniform float u_time;
-
-uniform vec3 u_cam_pos;
-uniform vec3 u_cam_tar;
-
-//uniform sampler2D u_noise_tex;
+uniform vec2 resolution;
+uniform float time;
 
 const float E   =  2.7182818;
 const float PI  =  radians(180.0); 
@@ -578,7 +573,7 @@ void main() {
 vec3 out_color = vec3(0.);
 int aa = 2;
 
-vec3 cam_target = u_cam_tar;
+vec3 cam_target = vec3(0.);
 vec3 cam_pos = vec3(45.,75.,245.);
 
 for(int k = 0; k < aa; k++ ) {
@@ -586,9 +581,9 @@ for(int k = 0; k < aa; k++ ) {
    
        vec2 o = vec2(float(k),float(l)) / float(aa) * .5;
 
-       vec2 uv = (gl_FragCoord.xy+o) / u_res.xy;
+       vec2 uv = (gl_FragCoord.xy+o) / resolution.xy;
        uv = uv * 2. - vec2(1.); 
-       uv.x *= u_res.x/u_res.y; 
+       uv.x *= resolution.x/resolution.y; 
 
        vec3 direction = rayCamDir(uv,cam_pos,cam_target,35.); 
        vec3 color = render(cam_pos,direction);
