@@ -6,10 +6,7 @@ out vec4 FragColor;
 
 uniform vec2 resolution;
 uniform float time;
-uniform vec2 mouse;
-uniform int mouse_pressed;
-
-const int seed = 23435062;
+uniform int seed;
 
 const int steps = 250;
 float eps = 0.00001;
@@ -311,24 +308,26 @@ vec2 scene(vec3 p) {
     vec2 res = vec2(1.,0.);
 
     res = opu(res,vec2(
-        boxFrame(p-vec3(1.,0.35,1.)-.05,vec3(1.,2.,1.),0.05)
-        ,12.));
+        box(p,vec3(.1)),25.));
+
+     
+    
 
     res = opu(res,vec2(
-        boxFrame(p-vec3(-0.25)+.05,vec3(1.),0.05)
+        boxFrame(p,vec3(.25),.0025)
         ,75.));
 
-    res = opu(res,vec2(
-        boxFrame(p-vec3(0.5)-.05,vec3(1.),0.05)
-        ,164.));
+
+    
 
     res = opu(res,vec2(
         
-        max(-boxFrame(p-vec3(-0.25),vec3(1.),0.1),
-        max(-boxFrame(p-vec3(1.,0.35,1.),vec3(1.,2.,1.),0.1),
-        max(-boxFrame(p-vec3(0.5),vec3(1.),0.1),
-        box(p,vec3(1.))
-        ))),2.));
+        max(-box(p,vec3(.15)),
+        max(-boxFrame(p,vec3(.33),.0025),
+        extr(p,roundRect(p.xy,vec2(1.61,.05),vec4(.025)),.61)
+
+
+        )),125.));
 
     return res;
 
@@ -480,9 +479,6 @@ vec3 color = vec3(0.);
 
 vec3 ro = vec3(5.);
 vec3 ta = vec3(0.);
-
-ro.xz *= rot(time * 0.1);
-ro.xy *= rot(time * 0.25);
 
 for(int k = 0; k < aa; ++k) {
     for(int l = 0; l < aa; ++l) {
