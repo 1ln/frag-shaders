@@ -282,6 +282,16 @@ float roundRect(vec2 p,vec2 b,vec4 r) {
     vec2 q = abs(p) - b + r.x;
     return min(max(q.x,q.y),0.) + length(max(q,0.)) - r.x;
 }
+
+float arch(vec2 p,vec2 c,float r,vec2 w) {
+    p.x = abs(p.x);
+    float l = length(p);
+    p = mat2(-c.x,c.y,c.y,c.x)*p
+    p = vec2((p.y>0.)?p.x:l*sign(-c.x),
+             (p.x>0.)?p.y:l);
+    p = vec2(p.x,abs(p.y-r)-w);
+    return length(max(p,0.)) + min(0.,max(p.x,p.y));
+}
   
 float box(vec3 p,vec3 b) {
 
@@ -306,18 +316,35 @@ float boxFrame(vec3 p,vec3 b,float e) {
 vec2 scene(vec3 p) {
 
     vec2 res = vec2(1.,0.);
+    vec3 q = p;
+
+    float scl = .0005;
+
+    float phi = (1.+sqrt(5.))/2.;
+
+
 
     res = opu(res,vec2(
         box(p,vec3(.1)),25.));
 
-     
+    res = opu(res,vec2(
+        extr(p,arch(p.xy,vec2(0.,1.),.25,vec2(.005)),.5),5.));
+
     
 
     res = opu(res,vec2(
         boxFrame(p,vec3(.25),.0025)
         ,75.));
 
+    res = opu(res,vec2(
+        max(-extr(p,roundRect(p,vec2(2.,1e10),vec4(.12)),1.),p.y)
+        ,10.));
 
+    p = repLimit(p/scl,vec3(.5))*scl;
+    res = opu(res,vec2(
+        box(p/scl,vec3(.25))*scl,90.5));
+
+        
     
 
     res = opu(res,vec2(
