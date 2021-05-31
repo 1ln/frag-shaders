@@ -200,22 +200,11 @@ mat3 camOrthographic(vec3 ro,vec3 ta,float r) {
      return mat3(u,v,w); 
 } 
 
-vec3 repLim(vec3 p,float c,vec3 l) {
+vec3 rl(vec3 p,float c,vec3 l) {
   
     vec3 q = p - c * clamp( floor((p/c)+0.5) ,-l,l);
     return q; 
 }
-
-vec2 repeat(vec2 p,float s) {
-     vec2 q = mod(p,s) - .5 * s;
-     return q;
-}
-
-vec3 repeat(vec3 p,vec3 s) {
-   
-    vec3 q = mod(p,s) - 0.5 * s;
-    return q;
-} 
 
 vec2 opu(vec2 d1,vec2 d2) {
     return (d1.x < d2.x) ? d1 : d2;
@@ -250,11 +239,6 @@ float smoi(float d1,float d2,float k) {
 
 }
 
-vec4 el(vec3 p,vec3 h) {
-    vec3 q = abs(p) - h;
-    return vec4(max(q,0.),min(max(q.x,max(q.y,q.z)),0.));
-}
-
 float extr(vec3 p,float d,float h) {
     vec2 w = vec2(d,abs(p.z) - h);
     return min(max(w.x,w.y),0.) + length(max(w,0.)); 
@@ -286,7 +270,7 @@ float roundRect(vec2 p,vec2 b,vec4 r) {
 float arch(vec2 p,vec2 c,float r,vec2 w) {
     p.x = abs(p.x);
     float l = length(p);
-    p = mat2(-c.x,c.y,c.y,c.x)*p
+    p = mat2(-c.x,c.y,c.y,c.x)*p;
     p = vec2((p.y>0.)?p.x:l*sign(-c.x),
              (p.x>0.)?p.y:l);
     p = vec2(p.x,abs(p.y-r)-w);
@@ -322,28 +306,26 @@ vec2 scene(vec3 p) {
 
     float phi = (1.+sqrt(5.))/2.;
 
-
-
     res = opu(res,vec2(
         box(p,vec3(.1)),25.));
 
     res = opu(res,vec2(
-        extr(p,arch(p.xy,vec2(0.,1.),.25,vec2(.005)),.5),5.));
-
-    
+        extr(p.yzx,arch(-p.yz-vec2(0.,.5) 
+        ,vec2(0.,1.),.25,vec2(.005)),.5),5.));
 
     res = opu(res,vec2(
-        boxFrame(p,vec3(.25),.0025)
+        boxFrame(p,vec3(.25),.0125)
         ,75.));
 
     res = opu(res,vec2(
-        max(-extr(p,roundRect(p,vec2(2.,1e10),vec4(.12)),1.),p.y)
+        max(-extr(p,roundRect(p.xy-vec2(0.,1./phi),
+        vec2(phi+phi/16.,1./phi+phi/12.),vec4(phi/16.)),1e10),p.z-1./phi)
         ,10.));
 
-    p = repLimit(p/scl,vec3(.5))*scl;
+
+    p = rl(p/scl,.5,vec3(.5))*scl;
     res = opu(res,vec2(
         box(p/scl,vec3(.25))*scl,90.5));
-
         
     
 
