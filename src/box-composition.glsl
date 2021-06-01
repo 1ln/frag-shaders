@@ -273,7 +273,7 @@ float arch(vec2 p,vec2 c,float r,vec2 w) {
     p = mat2(-c.x,c.y,c.y,c.x)*p;
     p = vec2((p.y>0.)?p.x:l*sign(-c.x),
              (p.x>0.)?p.y:l);
-    p = vec2(p.x,abs(p.y-r)-w);
+    p = vec2(p.x,abs(p.y-r))-w;
     return length(max(p,0.)) + min(0.,max(p.x,p.y));
 }
   
@@ -310,8 +310,8 @@ vec2 scene(vec3 p) {
         box(p,vec3(.1)),25.));
 
     res = opu(res,vec2(
-        extr(p.yzx,arch(-p.yz-vec2(0.,.5) 
-        ,vec2(0.,1.),.25,vec2(.005)),.5),5.));
+        extr(p.yzx,arch(-p.yz+vec2(0.,.75) 
+        ,vec2(0.,1.),.189,vec2(1e10,.005)),.075),5.));
 
     res = opu(res,vec2(
         boxFrame(p,vec3(.25),.0125)
@@ -319,8 +319,13 @@ vec2 scene(vec3 p) {
 
     res = opu(res,vec2(
         max(-extr(p,roundRect(p.xy-vec2(0.,1./phi),
-        vec2(phi+phi/16.,1./phi+phi/12.),vec4(phi/16.)),1e10),p.z-1./phi)
-        ,10.));
+        vec2(phi+phi/16.,1./phi+phi/12.),vec4(phi/16.)),1e10),
+   
+        max(-extr(p,roundRect(p.xy+vec2(0.,.25),
+        vec2(.5,.05),vec4(phi/16.)),1e10), 
+
+        p.z-1./phi
+        )),1.));
 
 
     p = rl(p/scl,.5,vec3(.5))*scl;
@@ -333,10 +338,9 @@ vec2 scene(vec3 p) {
         
         max(-box(p,vec3(.15)),
         max(-boxFrame(p,vec3(.33),.0025),
-        extr(p,roundRect(p.xy,vec2(1.61,.05),vec4(.025)),.61)
 
-
-        )),125.));
+        extr(p,roundRect(p.xy,vec2(1.61,.05),vec4(.025)),.5)
+        )),1.));
 
     return res;
 
@@ -431,7 +435,6 @@ vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
 
 vec3 l = normalize(vec3(10.));
-l.xz *= rot(time * 0.12);
 
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
