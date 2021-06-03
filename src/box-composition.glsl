@@ -201,9 +201,9 @@ mat3 camOrthographic(vec3 ro,vec3 ta,float r) {
 } 
 
 vec3 rl(vec3 p,float c,vec3 l) {
-  
     vec3 q = p - c * clamp( floor((p/c)+0.5) ,-l,l);
     return q; 
+
 }
 
 vec2 opu(vec2 d1,vec2 d2) {
@@ -300,14 +300,25 @@ float boxFrame(vec3 p,vec3 b,float e) {
 vec2 scene(vec3 p) {
 
     vec2 res = vec2(1.,0.);
-    vec3 q = p;
-
-    float scl = .0005;
 
     float phi = (1.+sqrt(5.))/2.;
 
     res = opu(res,vec2(
-        box(p,vec3(.1)),25.));
+        box(p,vec3(.1)),25.));   
+    
+
+     
+   
+
+    res = opu(res,vec2(
+        smod(length(p)-.5,box(p-vec3(0.,1.,0.),vec3(1.,.1,1.))
+        ,.25),125.));
+ 
+    
+
+
+
+
 
     res = opu(res,vec2(
         extr(p.yzx,arch(-p.yz+vec2(0.,.75) 
@@ -327,20 +338,19 @@ vec2 scene(vec3 p) {
         p.z-1./phi
         )),1.));
 
-
-    p = rl(p/scl,.5,vec3(.5))*scl;
+    float scl = .05;
+    vec3 q = p+vec3(1.,0.,0.);
+    q = rl(q/scl,.5,vec3(5.,0.,0.))*scl;        
     res = opu(res,vec2(
-        box(p/scl,vec3(.25))*scl,90.5));
-        
-    
+        box(q/scl,vec3(.25,.25,1e10))*scl,90.5));
 
     res = opu(res,vec2(
-        
+       
         max(-box(p,vec3(.15)),
         max(-boxFrame(p,vec3(.33),.0025),
-
+        max(-box(q/scl,vec3(.75,.75,1e10))*scl,
         extr(p,roundRect(p.xy,vec2(1.61,.05),vec4(.025)),.5)
-        )),1.));
+        ))),1.));
 
     return res;
 
