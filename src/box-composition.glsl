@@ -305,20 +305,11 @@ vec2 scene(vec3 p) {
 
     res = opu(res,vec2(
         box(p,vec3(.1)),25.));   
-    
-
-     
-   
-
+         
     res = opu(res,vec2(
-        smod(length(p)-.5,box(p-vec3(0.,1.,0.),vec3(1.,.1,1.))
-        ,.25),125.));
- 
-    
-
-
-
-
+      smou(length(p-vec3(1.,.25,0.))-.25,
+           box(p-vec3(1.,.1,0.),vec3(.25,.1,.25))
+           ,.1),125.));
 
     res = opu(res,vec2(
         extr(p.yzx,arch(-p.yz+vec2(0.,.75) 
@@ -339,16 +330,17 @@ vec2 scene(vec3 p) {
         )),1.));
 
     float scl = .05;
-    vec3 q = p+vec3(1.,0.,0.);
-    q = rl(q/scl,.5,vec3(5.,0.,0.))*scl;        
+    vec3 q = p+vec3(1.,-.1,0.);
+    q = rl(q/scl,1.5,vec3(5.,0.,0.))*scl;        
     res = opu(res,vec2(
-        box(q/scl,vec3(.25,.25,1e10))*scl,90.5));
+        max(p.z-.5,box(q/scl,vec3(.25,.25,1e10))*scl),95.));
+
 
     res = opu(res,vec2(
        
         max(-box(p,vec3(.15)),
         max(-boxFrame(p,vec3(.33),.0025),
-        max(-box(q/scl,vec3(.75,.75,1e10))*scl,
+        max(-box(p+vec3(1.,-.5,0.),vec3(1.,.5,1e10)),
         extr(p,roundRect(p.xy,vec2(1.61,.05),vec4(.025)),.5)
         ))),1.));
 
@@ -449,6 +441,8 @@ vec3 l = normalize(vec3(10.));
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
 
+
+
 col = 0.2 + 0.2 * sin(2.*d.y + vec3(4.,1.,2.));
 
 float nl = n3(p);
@@ -477,6 +471,8 @@ float ao = calcAO(p,n);
 
 vec3 linear = vec3(0.);
 
+
+
 dif *= shadow(p,l);
 ref *= shadow(p,r);
 
@@ -484,6 +480,7 @@ linear += dif * vec3(1.25,0.5,0.11);
 linear += amb * vec3(0.005,0.05,0.05);
 linear += ref * vec3(0.05,0.001,0.005);
 linear += fre * vec3(0.25,0.5,0.35);
+
 
 col = col * linear;
 col += spe * vec3(0.01,0.097,0.001); 
