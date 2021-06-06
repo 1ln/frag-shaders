@@ -15,8 +15,8 @@ float dmax = 750.;
 const int aa = 2;
  
 const int shsteps = 45; 
-float shblur = 10.0;
-float shmax = 100.; 
+float shblur = 125.;
+float shmax = 10.;
 
 float dot2(vec2 v) { return dot(v,v); }
 float dot2(vec3 v) { return dot(v,v); }
@@ -114,47 +114,14 @@ float f3(vec3 x,int octaves,float hurst) {
     return s;
 }
 
-float envImp(float x,float k) {
+float ei(float x,float k) {
 
     float h = k * x;
     return h * exp(1.0 - h);
 }
 
-float envSt(float x,float k,float n) {
+float es(float x,float k,float n) {
     return exp(-k * pow(x,n));
-}
-
-float cubicImp(float x,float c,float w) {
-
-    x = abs(x - c);
-    if( x > w) { return 0.0; }
-    x /= w;
-    return 1.0 - x * x  * (3.0 - 2.0 * x);
-
-}
-
-vec3 rgbHsv(vec3 c) {
-    vec3 rgb = clamp(abs(
-    mod(c.x * 6. + vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);
-
-    rgb = rgb * rgb * (3. - 2. * rgb);
-    return c.z * mix(vec3(1.),rgb,c.y);
-}
-
-vec3 contrast(vec3 c) {
-return smoothstep(0.,1.,c);
-}
-
-float easeOut4(float t) {
-    return -1.0 * t * (t - 2.0);
-}
-
-float easeIn3(float t) {
-    return t * t * t;
-}
-
-float easeOut3(float t) {
-    return (t = t - 1.0) * t * t + 1.0;
 }
 
 mat2 rot(float a) {
@@ -163,31 +130,6 @@ mat2 rot(float a) {
     float s = sin(a);
     
     return mat2(c,-s,s,c);
-}
-
-mat3 rotAxis(vec3 axis,float theta) {
-
-axis = normalize(axis);
-
-    float c = cos(theta);
-    float s = sin(theta);
-
-    float oc = 1.0 - c;
-
-    return mat3(
- 
-        oc * axis.x * axis.x + c, 
-        oc * axis.x * axis.y - axis.z * s,
-        oc * axis.z * axis.x + axis.y * s, 
-    
-        oc * axis.x * axis.y + axis.z * s,
-        oc * axis.y * axis.y + c, 
-        oc * axis.y * axis.z - axis.x * s,
-
-        oc * axis.z * axis.x - axis.y * s,
-        oc * axis.y * axis.z + axis.x * s, 
-        oc * axis.z * axis.z + c);
-
 }
 
 mat3 camOrthographic(vec3 ro,vec3 ta,float r) {
@@ -243,22 +185,6 @@ float extr(vec3 p,float d,float h) {
     vec2 w = vec2(d,abs(p.z) - h);
     return min(max(w.x,w.y),0.) + length(max(w,0.)); 
 } 
-
-vec2 rev(vec3 p,float w,float f) {
-    return vec2(length(p.xz) - w * f,p.y);
-} 
-
-vec3 twist(vec3 p,float k) {
-    
-    float s = sin(k * p.y);
-    float c = cos(k * p.y);
-    mat2 m = mat2(c,-s,s,c);
-    return vec3(m * p.xz,p.y);
-}
-
-float layer(float d,float h) {
-    return abs(d) - h;
-}
  
 float roundRect(vec2 p,vec2 b,vec4 r) {
     r.xy = (p.x > 0.) ? r.xy : r.zw;
@@ -304,15 +230,15 @@ vec2 scene(vec3 p) {
     float phi = (1.+sqrt(5.))/2.;
 
     res = opu(res,vec2(
-        box(p,vec3(.1)),25.));   
-         
+        box(p+vec3(0.,.05,0.),vec3(.1)),25.));   
+  
     res = opu(res,vec2(
       smou(length(p-vec3(1.,.25,0.))-.25,
            box(p-vec3(1.,.1,0.),vec3(.25,.1,.25))
            ,.1),125.));
 
     res = opu(res,vec2(
-        extr(p.yzx,arch(-p.yz+vec2(0.,.75) 
+        extr(p.yzx,arch(-p.yz+vec2(-.1,.75) 
         ,vec2(0.,1.),.189,vec2(1e10,.005)),.075),5.));
 
     res = opu(res,vec2(
@@ -320,6 +246,7 @@ vec2 scene(vec3 p) {
         ,75.));
 
     res = opu(res,vec2(
+        max(p.y-.5,
         max(-extr(p,roundRect(p.xy-vec2(0.,1./phi),
         vec2(phi+phi/16.,1./phi+phi/12.),vec4(phi/16.)),1e10),
    
@@ -327,14 +254,13 @@ vec2 scene(vec3 p) {
         vec2(.5,.05),vec4(phi/16.)),1e10), 
 
         p.z-1./phi
-        )),1.));
+        ))),2.));
 
     float scl = .05;
     vec3 q = p+vec3(1.,-.1,0.);
     q = rl(q/scl,1.5,vec3(5.,0.,0.))*scl;        
     res = opu(res,vec2(
         max(p.z-.5,box(q/scl,vec3(.25,.25,1e10))*scl),95.));
-
 
     res = opu(res,vec2(
        
@@ -375,7 +301,7 @@ float calcAO(vec3 p,vec3 n) {
     float o = 0.;
     float s = 1.;
 
-    for(int i = 0; i < 15; i++) {
+    for(int i = 0; i < 5; i++) {
  
         float h = .01 + .125 * float(i) / 4.; 
         float d = scene(p + h * n).x;  
@@ -433,59 +359,65 @@ vec3 col = vec3(1.) * max(0.,rd.y);
 
 if(d.y >= 0.) {
 
-vec3 p = ro + rd * d.x;
-vec3 n = calcNormal(p);
+    vec3 p = ro + rd * d.x;
+    vec3 n = calcNormal(p);
 
-vec3 l = normalize(vec3(10.));
+    vec3 l = normalize(vec3(2.,5.,2.));
 
-vec3 h = normalize(l - rd);
-vec3 r = reflect(rd,n);
+    vec3 h = normalize(l - rd);
+    vec3 r = reflect(rd,n);
 
+    float nl = n3(p);
 
+    col = .25+.25*sin(1.+vec3(.5));
 
-col = 0.2 + 0.2 * sin(2.*d.y + vec3(4.,1.,2.));
+    if(d.y == 1.) {
+        col = vec3(.98);
+    }
 
-float nl = n3(p);
-if(d.y == 2.) {
+    if(d.y == 2.) {
+        col = vec3(.75);
+    }
 
-    nl += mix(f3(p+f3(p,6,h11(111.)),4,h11(43.)),
-    0,step(h11(161.),h11(100.)));
+    if(d.y == 5.) {
 
-    nl += mix(cell(p,12.,int(floor(h11(124.)*2.))),
-    0,step(h11(95.),h11(235.)));
+        nl += mix(f3(p+f3(p,6,h11(111.)),4,h11(43.)),
+        0,step(h11(161.),h11(100.)));
+
+        nl += mix(cell(p,12.,int(floor(h11(124.)*2.))),
+        0,step(h11(95.),h11(235.)));
+
+        nl += mix(ei(es(p.y,p.x,f3(p,6,h11(75.))),
+                         es(p.z,p.x,f3(p,6,h11(15.)))),
+        0,step(h11(124.),h11(105.)));
  
-    col = vec3(nl);
-
-}
-
-float amb = clamp(0.5 + 0.5 * n.y,0.,1.);
-
-float dif = clamp(dot(n,l),0.0,1.0);
-
-float spe = pow(clamp(dot(n,h),0.0,1.0),16.)
-* dif * (.04 + 0.9 * pow(clamp(1. + dot(h,rd),0.,1.),5.));
-
-float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
-float ref = smoothstep(-.2,.2,r.y);
-float ao = calcAO(p,n);
-
-vec3 linear = vec3(0.);
+        col = vec3(nl);
 
 
+    }
 
-dif *= shadow(p,l);
-ref *= shadow(p,r);
+    float amb = clamp(0.5 + 0.5 * n.y,0.,1.);
+    float dif = clamp(dot(n,l),0.0,1.0);
+    float spe = pow(clamp(dot(n,h),0.0,1.0),16.)
+        * dif * (.04 + 0.9 * pow(clamp(1. + dot(h,rd),0.,1.),5.));
+    float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
+    float ref = smoothstep(-.2,.2,r.y);
+    float ao = calcAO(p,n);
 
-linear += dif * vec3(1.25,0.5,0.11);
-linear += amb * vec3(0.005,0.05,0.05);
-linear += ref * vec3(0.05,0.001,0.005);
-linear += fre * vec3(0.25,0.5,0.35);
+    vec3 linear = vec3(.5);
 
+    dif *= shadow(p,l);
+    ref *= shadow(p,r);
 
-col = col * linear;
-col += spe * vec3(0.01,0.097,0.001); 
+    linear += dif * vec3(1.25,0.5,0.11)*ao;
+    linear += amb * vec3(0.005,0.05,0.05);
+    linear += ref * vec3(0.05,0.001,0.005);
+    linear += fre * vec3(0.25,0.5,0.35);
 
-col = mix(col,vec3(1.),1.-exp(-0.00001 * d.x*d.x*d.x)); 
+    col = col * linear;
+    col += spe * vec3(0.01,0.097,0.001); 
+
+    col = mix(col,vec3(1.),1.-exp(-0.00001 * d.x*d.x*d.x)); 
 
 }
 
