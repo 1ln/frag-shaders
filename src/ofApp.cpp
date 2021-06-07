@@ -2,27 +2,23 @@
 
 void ofApp::setup() {
 
-ofEnableDepthTest();
+ofDisableDepthTest();
 
 frag = "frag.frag"; 
 
 path = filesystem::path("../../src");
 shader.load(path/"render.vert",path/frag);
+buffer.load(path/"render.vert",path/buffer.glsl);
 
-w = 895; 
-h = 645;
+w = ofGetWidth(); 
+h = ofGetHeight();
 
-ofSetWindowShape(w,h);
+cam.setPosition(glm::vec3(1.0));
+cam.setLookAt(glm::vec3(0.0));
 
-b.allocate(w,h);
-b.getTexture().getTextureData().bFlipTexture = true;
 
-plane.set(w,h);
-plane.setPosition(w/2,h/2,0);
-plane.setResolution(2,2);
 
-mouse.x = 0;
-mouse.y = 0;
+seed = ofRandom(0,1);
  
 }
 
@@ -30,15 +26,14 @@ void ofApp::draw() {
 
 shader.begin();
 
+
 shader.setUniform1f("time",ofGetElapsedTimeMillis()/1000.);
 shader.setUniform1f("frame",ofGetLastFrameTime());
 shader.setUniform2f("resolution",w,h);
-shader.setUniform2f("mouse",mouse.x,mouse.y);
+shader.setUniform1f("seed",seed);
+shader.setUniform3f("camPos",glm::vec3(cam.getPosition()));
 
-plane.set(w,h);
-plane.setPosition(w/2,h/2,0);
-
-plane.draw();
+ofDrawRectangle(0,0,w,h);
 
 shader.end();
 
@@ -70,11 +65,4 @@ void ofApp::keyPressed(int key) {
         
         shader.load(path/"render.vert",src_frag);
     } 
-}
-
-void ofApp::mouseMoved(int x,int y) {
-
-    mouse.x = x;
-    mouse.y = y;
-
 }
