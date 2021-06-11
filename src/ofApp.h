@@ -12,28 +12,29 @@ class ofApp : public ofBaseApp {
 
     void keyPressed(int key);
 
-    void mouseMoved(int x,int y);   
-
     int w;
     int h;
-    ofFbo b;
 
     int imgw;
     int imgh;
+
+    float seed;
+
+    ofEasyCam cam;
+
+    ofFbo fbo;
+    ofFbo fbo1;    
+
     ofPixels px;
     ofImage img;
     string screen_size; 
 
-    ofPlanePrimitive plane;
-
-    ofShader shader;      
-
-    ofVec2f mouse;
+    ofShader render;
+    ofShader buffer;
 
     ofFileDialogResult res;
     filesystem::path path; 
 
-    string frag;
     string src_frag;
     string src_vert;
 
