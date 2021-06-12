@@ -1,7 +1,6 @@
 #version 330     
 
-// dolson,2019
-
+// dolson
 out vec4 FragColor; 
 
 uniform vec2 resolution;
@@ -12,10 +11,10 @@ uniform float hour;
 uniform float minute;
 uniform float second;
 
-uniform vec3 cam_pos;
+uniform vec3 camPos;
 uniform sampler2D tex;
 
-uniform int seed;
+uniform float seed;
 
 uniform vec2 mouse;
 uniform vec2 mouse_scroll;

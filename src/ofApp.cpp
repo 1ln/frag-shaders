@@ -5,7 +5,7 @@ void ofApp::setup() {
 ofDisableDepthTest();
 
 path = filesystem::path("../../src");
-render.load(path/"render.vert",path/frag.frag); 
+render.load(path/"render.vert",path/render.glsl);
 buffer.load(path/"render.vert",path/buffer.glsl);
 
 w = ofGetWidth(); 
