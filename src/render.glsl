@@ -13,8 +13,7 @@ uniform float second;
 
 uniform vec3 camPos;
 uniform sampler2D tex;
-
-uniform float seed;
+uniform int seed;
 
 uniform vec2 mouse;
 uniform vec2 mouse_scroll;
@@ -819,31 +818,7 @@ float menger(vec3 p,int n,float s,float d) {
 vec2 scene(vec3 p) { 
 
 vec2 res = vec2(1.0,0.0);
-vec3 q = vec3(p); 
-
-mat4 ra = rotAxis(vec3(0.,1.,0.),time*.0001);
-mat4 ra2 = rotAxis(vec3(1.,0.,1.),time*.00001);
-q = (vec4(q,1.) * ra2).xyz;
-
-res = opu(res,vec2(icosahedron(p-vec3(2.,2.5,-1.5),1.),5.)); 
-
-res = opu(res,vec2(box(p-vec3(.5,0.,-.5),vec3(1.25,,.5,.25)),112.));
-res = opu(res,vec2(box(p-vec3(.25,0.,-.25),vec3(.25)),25.));
-res = opu(res,vec2(box(p-vec3(.0,.25,.12),vec3(1.,-.5,.-1.)),235.));
-res = opu(res,vec2(boxFrame(p-vec3(.5),vec3(1.),.5),111.5));
-res = opu(res,vec2(boxFrame(p-vec3(-1.,.25,.5),vec3(.1),.05)),331.33);
-
-p -= vec3(-1.,.5,-.25);
-res = opu(res,vec2(smod(sphere(p,.5),box(p,vec3(.5)),.5),16.16));
-
-
-
-
-res = opu(res,vec2(
-max(-box(p-vec3(.5,0.,-.5),vec3(1.5,.5.,.25))
-,box(p,vec3(1.,0.,1.))
-
-),12.));
+res = opu(res,vec2(icosahedron(p,1.),5.)); 
 
 return res;
 

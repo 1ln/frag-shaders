@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxGui.h"
 
 class ofApp : public ofBaseApp {
 
@@ -18,7 +19,12 @@ class ofApp : public ofBaseApp {
     int imgw;
     int imgh;
 
-    float seed;
+    ofxPanel gui;
+ 
+    ofParameter<int> seed;
+    ofParameter<bool> info;
+
+    bool hide_panel;
 
     ofEasyCam cam;
 
@@ -27,7 +33,10 @@ class ofApp : public ofBaseApp {
 
     ofPixels px;
     ofImage img;
-    string screen_size; 
+
+    ofParameter<string> screen_size; 
+    ofParameter<string> fps;
+    ofParameter<string> frame;
 
     ofShader render;
     ofShader buffer;

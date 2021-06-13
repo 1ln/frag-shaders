@@ -5,8 +5,8 @@ void ofApp::setup() {
 ofDisableDepthTest();
 
 path = filesystem::path("../../src");
-render.load(path/"render.vert",path/render.glsl);
-buffer.load(path/"render.vert",path/buffer.glsl);
+render.load(path/"render.vert",path/"render.glsl");
+buffer.load(path/"render.vert",path/"buffer.glsl");
 
 w = ofGetWidth(); 
 h = ofGetHeight();
@@ -20,16 +20,21 @@ fbo1.allocate(w,h);
 fbo1.getTexture().getTextureData().bFlipTexture = true;
 
 cam.setPosition(glm::vec3(1.0));
-cam.setLookAt(glm::vec3(0.0));
+cam.lookAt(glm::vec3(0.0));
 
-seed = ofRandom(0,1);
- 
+gui.setup(); 
+
+gui.add(seed.set("seed",(int)(ofRandom(0,1)*1000000)));
+gui.add(info.set("info",false));
+
+
+
 }
 
 void ofApp::draw() {
 
 fbo.begin();
-ofClear();
+ofClear(0);
 buffer.begin();
 buffer.setUniform2f("resolution",w,h);
 buffer.setUniform1f("seed",seed);
