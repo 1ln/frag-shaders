@@ -358,14 +358,6 @@ float fresnel(vec3 n,vec3 rd) {
     return pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
 }
 
-vec3 triplanar(vec3 p,vec3 n) {
-    mat3 sample = mat3( 
-       texture(tex,p.yz*.5+.5).rgb,
-       texture(tex,p.xz*.5+.5).rgb,
-       texture(tex,p.xy*.5+.5).rgb);
-    return sample * abs(n);
-}
- 
 float cell(vec2 x,float n) {
     x *= n;
     vec2 p = floor(x);
@@ -958,7 +950,7 @@ vec3 render(inout vec3 ro,inout vec3 rd,inout vec3 ref) {
         linear += fre * vec3(.025,.01,.03);
         linear += .25 * spe * vec3(0.04,0.05,.05)*ref;
 
-        if(d.y == 25.) {
+        if(d.y == 5.) {
 
             p *= .25;
 
@@ -972,15 +964,7 @@ vec3 render(inout vec3 ro,inout vec3 rd,inout vec3 ref) {
         
             ref = vec3(0.005);     
 
-        } else if (d.y == 10.) {
-          
-            col = triplanar(p,n);
-            ref = vec3(.001);
-
-        } else if (d.y == 5.) {
-       
-            col = vec3(.5);
-            ref = vec3(.33);
+    
         }    
  
 
@@ -998,7 +982,7 @@ void main() {
 vec3 color = vec3(0.);
 
 vec3 ta = vec3(0.);
-vec3 ro = cam_pos;
+vec3 ro = camPos;
 
 for(int k = 0; k < AA; k++ ) {
    for(int l = 0; l < AA; l++) {

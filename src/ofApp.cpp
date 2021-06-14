@@ -38,7 +38,7 @@ fbo.begin();
 ofClear(0);
 buffer.begin();
 buffer.setUniform2f("resolution",w,h);
-buffer.setUniform1f("seed",seed);
+buffer.setUniform1i("seed",seed);
 buffer.end();
 fbo.end();
 
@@ -51,7 +51,7 @@ cam.end();
 render.setUniform1f("time",ofGetElapsedTimeMillis()/1000.);
 render.setUniform1f("frame",ofGetLastFrameTime());
 render.setUniform2f("resolution",w,h);
-render.setUniform1f("seed",seed);
+render.setUniform1i("seed",seed);
 render.setUniform3f("camPos",glm::vec3(cam.getPosition()));
 render.setUniformTexture("tex",fbo.getTexture(0),1);
 
@@ -81,6 +81,10 @@ void ofApp::keyPressed(int key) {
         img.save("../../frag.png");
 
     }
+
+    if(key == 'h') {
+    hide_panel = !hide_panel;
+    }    
 
     if(key == 'f') {
       
