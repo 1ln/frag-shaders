@@ -1,13 +1,12 @@
-#version 430 core     
+#version 330 core     
 
-// dolson,2019
-
+// dolson
 out vec4 FragColor;
 
 uniform vec2 resolution;
 uniform float time;
 
-uniform int seed = 2415964;
+uniform int seed;
 
 const int steps = 250;
 float eps = 0.0001;
@@ -15,18 +14,12 @@ float dmin = 0.;
 float dmax = 200;
 const int aa = 2;
  
-const int shsteps = 45; 
+const int shsteps = 24; 
 float shblur = 125.0;
 float shmax = 10.; 
 
 float h11(float p) {
     uvec2 n = uint(int(p)) * uvec2(uint(int(seed)),2531151992.0);
-    uint h = (n.x ^ n.y) * uint(int(seed));
-    return float(h) * (1./float(0xffffffffU));
-}
-
-float h21(vec2 p) {
-    uvec2 n = uvec2(ivec2(p)) * uvec2(uint(int(seed)),2531151992.0);
     uint h = (n.x ^ n.y) * uint(int(seed));
     return float(h) * (1./float(0xffffffffU));
 }
@@ -87,7 +80,7 @@ vec2 scene(vec3 p) {
 
     vec3 q = p;
 
-    p.xz *= rot(sin(time*.15) +.25);
+    p.xz *= rot(.5+easeOut3(sin(time*.5)*.25)-1.5);
 
     res = opu(res,vec2(
               max(
@@ -97,7 +90,7 @@ vec2 scene(vec3 p) {
               ,25.));
 
     res = opu(res,vec2(
-    smou(sphere(q,.5),plane(q,vec4(0.,1.,0.,0.)),0.1)
+    smou(sphere(q,.25),plane(q,vec4(0.,1.,0.,0.)),0.1)
     ,12.));
 
     return res;
@@ -137,7 +130,7 @@ float shadow(vec3 ro,vec3 rd) {
         float h = scene(ro + rd * t  ).x;
 
         float y = h * h / (2. * ph);
-        float d = sqrt(h*h-y*y);         
+        float d = sqrt(h*h-y*y);
         res = min(res,shblur * d/max(0.,t-y));
         ph = h;
         t += h;
@@ -174,7 +167,7 @@ if(d.y >= 0.) {
 
 vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
-vec3 l = normalize(vec3(10.));
+vec3 l = normalize(vec3(-3.,3.33,-2.));
 l.xz *= rot(time*.1);
 
 vec3 h = normalize(l - rd);
@@ -182,9 +175,7 @@ vec3 r = reflect(rd,n);
 
 if(d.y == 12.) { 
 col = vec3(5.,4.,8.);
-}
-
-if(d.y == 25.) { 
+} else {
 col = vec3(10.,2.,2.);
 }
 
@@ -206,11 +197,10 @@ ref *= shadow(p,r);
 linear += dif * vec3(.5,h11(100.),.5);
 linear += amb * vec3(0.005,0.05,0.05);
 linear += ref * vec3(0.005,0.001,0.01);
-linear += fre * vec3(0.25,0.5,0.35);
+linear += fre * vec3(h11(112.),h11(12.),.5);
 
 col = col * linear;
 col += spe * vec3(0.05,0.01,0.035)*ref; 
-
 col = mix(col,vec3(1.),1.-exp(-0.00001 * d.x*d.x*d.x)); 
 
 }
