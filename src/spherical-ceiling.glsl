@@ -1,13 +1,12 @@
 #version 430 core
 
-// dolson,2019
-
+// dolson
 out vec4 FragColor;
 
 uniform vec2 resolution;
 uniform float time;
+uniform int seed;
 
-#define SEED 1523595.
 #define EPS 0.0001
 #define EXPONENTIAL
 #define BLEND_K 2.
@@ -46,7 +45,7 @@ float ns2(vec2 p) {
     vec3 p1 = permute(permute(i.y + vec3(0.,i1.y,1.))
         + i.x + vec3(0.,i1.x,1.));
   
-    p1 = permute(mod289(p1 + vec3(float(SEED))));
+    p1 = permute(mod289(p1 + vec3(float(seed))));
 
     vec3 m = max(.5 - 
     vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.);
@@ -65,19 +64,23 @@ float ns2(vec2 p) {
     return 130. * dot(m,g);
 }
 
-float f(vec2 x,int octaves) {
+float f(vec2 x) {
 
     float f = 0.;
 
-    for(int i = 1; i < octaves; i++) {
- 
+    for(int i = 1; i < 8; i++) {
+
     float e = pow(2.,float(i));
     float s = (1./e);
     f += ns2(x*e)*s;   
-    
     }    
 
     return f * .5 + .5;
+}
+
+float f2(vec3 p) {
+    float h = f(p.xz);
+    return h;
 }
 
 float envImp(float x,float k) {
@@ -89,22 +92,6 @@ float envImp(float x,float k) {
 vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
     
     return a + b * cos( (radians(180)*2.0) * (c * t + d));
-}
-
-float easeOut4(float t) {
-
-    return -1.0 * t * (t - 2.0);
-
-}
-
-float easeInOut3(float t) {
-
-    if((t *= 2.0) < 1.0) {
-        return 0.5 * t * t * t;
-    } else { 
-        return 0.5 * ((t -= 2.0) * t * t + 2.0);
-
-    }
 }
 
 mat2 rot2(float a) {
@@ -158,15 +145,11 @@ float plane(vec3 p,vec4 n) {
 vec2 scene(vec3 p) {
 
     vec2 res = vec2(1.,0.);
-    vec3 pl = p;
+
     vec3 q = p;    
+    vec2 l = vec2(p.y-f(p.xz+.5)*.25,45.);
 
-    p.y += ns2(p.xz * .005 + f(p.xz * .025,6) * .125) * 10.;
-
-    vec2 h = vec2(plane(p,vec4(0.,1.,0.,1.)),25.);
-    vec2 l = vec2(pl.y + 1.,45.);
-
-    res = blend(l,h);
+    res = l;
     return res;
 
 }
@@ -177,7 +160,7 @@ vec2 rayScene(vec3 ro,vec3 rd) {
     float s = 0.;
     float e = 100.;  
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < 164; i++) {
 
         vec3 p = ro + s * rd;
         vec2 dist = scene(p);
@@ -191,11 +174,6 @@ vec2 rayScene(vec3 ro,vec3 rd) {
         if(e < s) { d = -1.0; }
         return vec2(s,d);
 
-}
-
-vec3 fog(vec3 col,vec3 fcol,float fdist,float fdens,float y) {
-    float fdep = 1. - exp(-fdist * pow(fdens,y));
-    return mix(col,fcol,fdep);
 }
 
 vec3 scatter(vec3 col,float distance,float density,vec3 rd,vec3 ld) {
@@ -229,17 +207,11 @@ float shadow(vec3 ro,vec3 rd ) {
 
 }
 
-vec3 calcNormal(vec3 p) {
-
-    vec2 e = vec2(1.0,-1.0) * EPS;
-
-    return normalize(vec3(
-    vec3(e.x,e.y,e.y) * scene(p + vec3(e.x,e.y,e.y)).x +
-    vec3(e.y,e.x,e.y) * scene(p + vec3(e.y,e.x,e.y)).x +
-    vec3(e.y,e.y,e.x) * scene(p + vec3(e.y,e.y,e.x)).x + 
-    vec3(e.x,e.x,e.x) * scene(p + vec3(e.x,e.x,e.x)).x
-
-    ));
+vec3 calcNormal(vec3 p,float d) {
+    vec3 e = vec3(EPS*d,0.,0.);
+    return normalize(vec3(f2(p-e.xyy)-f2(p+e.xyy),
+                     2.*e.x,
+                     vec3(f2(p-e.yxx)-f2(p+e.yxx))));  
     
 }
 
@@ -260,17 +232,15 @@ vec3 render(vec3 ro,vec3 rd) {
  
 vec2 d = rayScene(ro, rd);
 
-vec3 col = vec3(1.) - max(rd.y,0.);
+vec3 col = vec3(1.);
 
 if(d.y >= 0.) {
 
 vec3 p = ro + rd * d.x;
-vec3 n = calcNormal(p);
+vec3 n = calcNormal(p,d.x);
 vec3 l = normalize(vec3(10.,15.,15.));
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
-
-col = .2+.2*sin(2.*d.y*vec3(.45));
 
 float amb = sqrt(clamp(0.5 + 0.5 * n.y,0.0,1.0));
 float dif = clamp(dot(n,l),0.0,1.0);
@@ -286,17 +256,13 @@ vec3 linear = vec3(0.);
 dif *= shadow(p,l);
 ref *= shadow(p,r);
 
-linear += dif * vec3(1.5,1.,1.25);
-linear += amb * vec3(0.02,0.4,0.1);
-linear += ref * vec3(0.05,0.01,0.04);
-linear += fre * vec3(0.04,0.01,0.05);
-linear += ind * vec3(0.04,0.5,0.33);
+linear += .05* dif * vec3(.25);
+linear += .02* amb * vec3(0.02,0.4,0.1);
 
 col = col * linear;
-col += 5. * spe * vec3(0.06,0.005,0.004 );
 
-col = scatter(col,.00025,d.x*d.x,rd,l);
-
+vec3 c = scatter(col,.5,d.x*d.x,rd,l);
+col = mix(col,vec3(1.)+c,1.-exp(-.25*d.x*d.x*d.x));
 }
 
 return col;
@@ -307,10 +273,7 @@ void main() {
 vec3 color = vec3(0.);
 
 vec3 cam_tar = vec3(0.);
-vec3 cam_pos = vec3(25.,15.,35.);
-
-cam_tar.z += time;
-cam_pos += cam_tar;
+vec3 cam_pos = vec3(0.,.25,1.);
 
 vec2 uv = (2. * gl_FragCoord.xy - resolution.xy) / resolution.y; 
 
