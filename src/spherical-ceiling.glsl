@@ -94,7 +94,7 @@ vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
     return a + b * cos( (radians(180)*2.0) * (c * t + d));
 }
 
-mat2 rot2(float a) {
+mat2 rot(float a) {
 
     float c = cos(a);
     float s = sin(a);
@@ -238,7 +238,9 @@ if(d.y >= 0.) {
 
 vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p,d.x);
-vec3 l = normalize(vec3(10.,15.,15.));
+vec3 l = normalize(vec3(-2.,.05,-5.5));
+     l.xz *= rot(-2.5+sin(time*.05)-3.3);
+
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
 
@@ -256,13 +258,13 @@ vec3 linear = vec3(0.);
 dif *= shadow(p,l);
 ref *= shadow(p,r);
 
-linear += .05* dif * vec3(.25);
-linear += .02* amb * vec3(0.02,0.4,0.1);
+linear += .005* dif * vec3(.25);
+linear += .001* amb * vec3(0.02,0.4,0.1);
 
 col = col * linear;
 
 vec3 c = scatter(col,.5,d.x*d.x,rd,l);
-col = mix(col,vec3(1.)+c,1.-exp(-.25*d.x*d.x*d.x));
+col = mix(col,vec3(1.)+c*12.,1.-exp(-.25*d.x*d.x*d.x));
 }
 
 return col;
