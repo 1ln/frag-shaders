@@ -1,4 +1,4 @@
-#version 430 core
+#version 330 core
 
 //dan olson
 
@@ -6,18 +6,16 @@ out vec4 FragColor;
 
 uniform vec2 resolution;
 uniform float time;
+uniform int seed;
 
 const int steps = 250;
 const float eps = 0.0001;
 const float far = 500.;
 const float near = .1;
 
-const float PI  =  radians(180.0); 
-const float PI2 = PI * 2.;
-
 float hash(float p) {
 
-    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0 * 5535123.);
+    uvec2 n = uint(int(p)) * uvec2(1391674541U,2531151992.0 * float(seed));
     uint h = (n.x ^ n.y) * 1391674541U;
     return float(h) * (1.0/float(0xffffffffU));
 
@@ -57,14 +55,6 @@ float f(vec3 x,int octaves,float h) {
     return t;
 }
 
-float sin3(vec3 p,float h) {   
-    return sin(p.x*h) * sin(p.y*h) * sin(p.z*h);
-}
-
-vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
-    return a + b * cos((2. * PI) * (c * t + d));
-}
-
 vec2 opu(vec2 d1,vec2 d2) {
     return (d1.x < d2.x) ? d1 : d2;
 } 
@@ -89,7 +79,7 @@ float roundCone(vec3 p,float r1,float r2,float h) {
 vec2 scene(vec3 p) { 
 
 vec2 res = vec2(1.0,0.0);
-float scale = float(45.) / PI;
+float scale = float(45.) / radians(180.);
 
 vec2 h = p.xz; 
 float r = length(h); 
@@ -102,35 +92,10 @@ p.y += ns(p * .5) + .5;
 
 float d = 0.;
 d = roundCone(vec3(h,p.y/mul),1.,.5,2.) * mul; 
-d = sphere(vec3(h,p.y/mul),1.) * mul;
 
 res = vec2(d,1.);
 
 return res;
-
-}
-
-float shadow(vec3 ro,vec3 rd ) {
-
-    float res = 1.0;
-    float t = 0.005;
-    float ph = 1e10;
-    
-    for(int i = 0; i < 45; i++ ) {
-        
-        float h = scene(ro + rd * t  ).x;
-
-        float y = h * h / (2. * ph);
-        float d = sqrt(h*h-y*y);         
-        res = min(res,100. * d/max(0.,t-y));
-        ph = h;
-        t += h;
-    
-        if(res < eps || t > 25.) { break; }
-
-        }
-
-        return clamp(res,0.0,1.0);
 
 }
 
@@ -169,25 +134,22 @@ ro += rd * (dist*.98);
 vec3 p = ro;
 
 vec3 n = calcNormal(p);
-vec3 l = normalize(vec3(2.,10.,15.));
+vec3 l = normalize(vec3(2.,10.,1.));
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
 
 float amb = sqrt(clamp(0.5 + 0.5 * n.y,0.0,1.0));
 float dif = clamp(dot(n,l),0.0,1.0);
 float spe = pow(clamp(dot(n,h),0.0,1.0),16.) * dif * (.04 + 0.9 * pow(clamp(1. + dot(h,rd),0.,1.),5.));
-float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
-float ref = smoothstep(-.2,.2,r.y);
+
 vec3 linear = vec3(1.);
 
 linear += dif * vec3(.15);
 linear += amb * vec3(.03);
-linear += ref * vec3(.1);
-linear += fre * vec3(.045); 
 
 col = col * linear;
 col += 5. * spe * vec3(.5);
-col = mix(col,bgcol,1.-exp(.005*dist*dist*dist));
+col = mix(col,bgcol,1.-exp(.005*dist*dist));
 
 return col;
 }
@@ -196,7 +158,7 @@ void main() {
 
 vec3 ta = vec3(0.);
 vec3 ro = vec3(1.);
-ro = ta + vec3(cos(time*.1)-4.,-2.,sin(time*.25)+3.);
+ro = ta + vec3(cos(time*.1)-4.,2.,sin(time*.25)+3.);
 
 vec2 uv = (2. * gl_FragCoord.xy - resolution) / resolution.y;
 
