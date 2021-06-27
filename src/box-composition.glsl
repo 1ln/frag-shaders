@@ -381,18 +381,16 @@ if(d.y >= 0.) {
 
     if(d.y == 5.) {
 
+        nl += mix(f3(p,8,sin(col.y)),
+        0,step(h11(23.),h11(37.)));
+
         nl += mix(f3(p+f3(p,6,h11(111.)),4,h11(43.)),
         0,step(h11(161.),h11(100.)));
 
         nl += mix(cell(p,12.,int(floor(h11(124.)*2.))),
         0,step(h11(95.),h11(235.)));
-
-        nl += mix(ei(es(p.y,p.x,f3(p,6,h11(75.))),
-                         es(p.z,p.x,f3(p,6,h11(15.)))),
-        0,step(h11(124.),h11(105.)));
  
         col = vec3(nl);
-
 
     }
 
