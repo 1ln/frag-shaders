@@ -227,11 +227,9 @@ vec2 scene(vec3 p) {
 
     vec2 res = vec2(1.,0.);
 
-    float phi = (1.+sqrt(5.))/2.;
-
     res = opu(res,vec2(
-        box(p+vec3(0.,.05,0.),vec3(.1)),25.));   
-  
+        box(p+vec3(0.,.05,0.),vec3(.05)),25.));   
+
     res = opu(res,vec2(
       smou(length(p-vec3(1.,.25,0.))-.25,
            box(p-vec3(1.,.1,0.),vec3(.25,.1,.25))
@@ -241,20 +239,29 @@ vec2 scene(vec3 p) {
         extr(p.yzx,arch(-p.yz+vec2(-.1,.75) 
         ,vec2(0.,1.),.189,vec2(1e10,.005)),.075),5.));
 
+    vec3 l = p;
+    l.x -= 1.;
     res = opu(res,vec2(
-        boxFrame(p,vec3(.25),.0125)
+    extr(l.yzx,arch(-l.yz+vec2(-.189,.61)
+    ,vec2(0.,1.),.11,vec2(1e10,.005)),.35),12.));
+
+    res = opu(res,vec2(
+        boxFrame(p,vec3(.125),.0125)
         ,75.));
 
     res = opu(res,vec2(
         max(p.y-.5,
-        max(-extr(p,roundRect(p.xy-vec2(0.,1./phi),
-        vec2(phi+phi/16.,1./phi+phi/12.),vec4(phi/16.)),1e10),
-   
-        max(-extr(p,roundRect(p.xy+vec2(0.,.25),
-        vec2(.5,.05),vec4(phi/16.)),1e10), 
+        max(-extr(p,roundRect(p.xy-vec2(0.,.6),
+        vec2(1.71,.75),vec4(.1)),1e10),   
 
-        p.z-1./phi
-        ))),2.));
+        max(-extr(p,roundRect(p.xy+vec2(0.,.25),
+        vec2(.25,.05),vec4(.05)),1e10), 
+
+        max(-extr(p,roundRect(p.xy+vec2(-1.,.25),
+        vec2(.5,.05),vec4(.05)),1e10),
+
+        p.z-.61
+        )))),2.));
 
     float scl = .05;
     vec3 q = p+vec3(1.,-.1,0.);
@@ -263,12 +270,11 @@ vec2 scene(vec3 p) {
         max(p.z-.5,box(q/scl,vec3(.25,.25,1e10))*scl),95.));
 
     res = opu(res,vec2(
-       
-        max(-box(p,vec3(.15)),
-        max(-boxFrame(p,vec3(.33),.0025),
+    
+        max(-box(p,vec3(.33)),
         max(-box(p+vec3(1.,-.5,0.),vec3(1.,.5,1e10)),
         extr(p,roundRect(p.xy,vec2(1.61,.05),vec4(.025)),.5)
-        ))),1.));
+        )),1.));
 
     return res;
 
@@ -301,7 +307,7 @@ float calcAO(vec3 p,vec3 n) {
     float o = 0.;
     float s = 1.;
 
-    for(int i = 0; i < 5; i++) {
+    for(int i = 0; i < 3; i++) {
  
         float h = .01 + .125 * float(i) / 4.; 
         float d = scene(p + h * n).x;  
@@ -367,17 +373,9 @@ if(d.y >= 0.) {
     vec3 h = normalize(l - rd);
     vec3 r = reflect(rd,n);
 
+    col = 1.+.25*sin(d.y+vec3(.5));
+
     float nl = n3(p);
-
-    col = .25+.25*sin(1.+vec3(.5));
-
-    if(d.y == 1.) {
-        col = vec3(.98);
-    }
-
-    if(d.y == 2.) {
-        col = vec3(.75);
-    }
 
     if(d.y == 5.) {
 
@@ -387,10 +385,22 @@ if(d.y >= 0.) {
         nl += mix(f3(p+f3(p,6,h11(111.)),4,h11(43.)),
         0,step(h11(161.),h11(100.)));
 
-        nl += mix(cell(p,12.,int(floor(h11(124.)*2.))),
+        nl += mix(cell(p+f3(p,6,.5),12.,int(floor(h11(124.)*2.))),
         0,step(h11(95.),h11(235.)));
  
         col = vec3(nl);
+
+    }
+
+    if(d.y == 12.) {
+        
+        nl += mix(f3(p,8,ei(nl,.5)),
+        0,step(h11(231.),h11(105.)));     
+    
+        nl += mix(f3(p+es(n3(p),h11(116.),.5),8,h11(25.)),
+        0,step(h11(112.),h11(44.)));
+
+        col += vec3(nl); 
 
     }
 
@@ -440,15 +450,14 @@ for(int k = 0; k < aa; ++k) {
     mat3 cm = camOrthographic(ro,ta,0.);
     vec3 rd = cm * normalize(vec3(uv.xy,5.));   
 
-    vec3 render = renderScene(ro,rd);    
+    vec3 col = renderScene(ro,rd);    
 
-    color += render;
+    col = pow(col,vec3(.4545)); 
+    color += col;
     }
+}
 
 color /= float(aa*aa);
-color = pow(color,vec3(.4545));
-
 FragColor = vec4(color,1.0);
-}
 
 }
