@@ -1,6 +1,5 @@
 #version 330     
 
-// dolson
 out vec4 FragColor; 
 
 uniform vec2 resolution;
@@ -11,7 +10,7 @@ uniform int seed;
 #ifdef SINE
 
 float h21(vec2 p) {
-    return fract(sin(dot(p,vec2(12.9898,78.233)*float(43758.5453+seed))));
+    return fract(sin(dot(p,vec2(12.9898,78.233)))*float(seed));
 }
 
 #else
@@ -27,6 +26,10 @@ float h21(vec2 p) {
 void main() { 
 
 vec2 uv = (2.* (gl_FragCoord.xy) - resolution.xy)/resolution.y;
-FragColor = vec4(vec3(h21(uv)),1.0);
+
+uv *= 10.;
+
+vec2 loc = vec2(floor(uv));
+FragColor = vec4(vec3(h21(loc)),1.0);
 
 }
