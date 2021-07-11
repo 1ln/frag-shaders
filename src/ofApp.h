@@ -26,6 +26,13 @@ class ofApp : public ofBaseApp {
 
     bool hide_panel;
 
+    bool key_up;
+    bool key_down;
+    bool key_right;
+    bool key_left;
+    bool key_x;
+    bool key_z;
+
     ofEasyCam cam;
 
     ofFbo fbo;
