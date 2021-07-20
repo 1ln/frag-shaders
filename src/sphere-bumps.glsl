@@ -248,7 +248,7 @@ vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
 
 vec3 l = normalize(vec3(10.,15.,15.));
-mat4 ra = rotAxis(vec3(1.,0.,0.),(radians(180)*2.0)*time*.01);
+mat4 ra = rotAxis(vec3(1.,0.,0.),(radians(180)*2.0)*time*.0001);
 l = (vec4(l,1.)*ra).xyz;
 
 vec3 h = normalize(l - rd);
@@ -288,6 +288,9 @@ vec3 color = vec3(0.);
 
 vec3 cam_tar = vec3(0.);
 vec3 cam_pos = vec3(5.,12,5.);
+
+cam_tar.z += time * .1;
+cam_pos += cam_tar;
 
 vec2 uv = -1. + 2. * gl_FragCoord.xy / resolution.xy; 
 uv.x *= resolution.x / resolution.y; 

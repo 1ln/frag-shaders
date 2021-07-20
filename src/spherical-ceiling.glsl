@@ -183,30 +183,6 @@ vec3 scatter(vec3 col,float distance,float density,vec3 rd,vec3 ld) {
     return mix(col,fog_col,fog);
 }
 
-float shadow(vec3 ro,vec3 rd ) {
-
-    float res = 1.0;
-    float t = 0.005;
-    float ph = 1e10;
-    
-    for(int i = 0; i < 105; i++ ) {
-        
-        float h = scene(ro + rd * t  ).x;
-
-        float y = h * h / (2. * ph);
-        float d = sqrt(h*h-y*y);         
-        res = min(res,64. * d/max(0.,t-y));
-        ph = h;
-        t += h;
-    
-        if(res < EPS || t > 10.) { break; }
-
-        }
-
-        return clamp(res,0.0,1.0);
-
-}
-
 vec3 calcNormal(vec3 p,float d) {
     vec3 e = vec3(EPS*d,0.,0.);
     return normalize(vec3(f2(p-e.xyy)-f2(p+e.xyy),
@@ -255,13 +231,10 @@ float fre = pow(clamp(1. + dot(n,rd),0.0,1.0),2.0);
 float ref = smoothstep(-.2,.2,r.y);
 vec3 linear = vec3(0.);
 
-dif *= shadow(p,l);
-ref *= shadow(p,r);
-
 linear += .005* dif * vec3(.25);
 linear += .001* amb * vec3(0.02,0.4,0.1);
 
-col = col * linear;
+col = col * linear * spe * ind;
 
 vec3 c = scatter(col,.5,d.x*d.x,rd,l);
 col = mix(col,vec3(1.)+c*12.,1.-exp(-.25*d.x*d.x*d.x));
