@@ -231,9 +231,9 @@ for(int k = 0; k < aa; ++k) {
     col = pow(col,vec3(.4545));
     color += col;
     }
+}
 
 color /= float(aa*aa);
 FragColor = vec4(color,1.0);
-}
 
 }

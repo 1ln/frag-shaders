@@ -261,9 +261,9 @@ for(int k = 0; k < aa; ++k) {
     color += render;
 
     }
+}
 
 color /= float(aa*aa);
 FragColor = vec4(color,1.0);
-}
 
 }
