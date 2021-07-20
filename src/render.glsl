@@ -1000,12 +1000,12 @@ for(int k = 0; k < AA; k++ ) {
            col += dec * render(ro,rd,ref);
        }
 
-       color += col;
+    col = pow(col,vec3(.4545));
+    color += col;
    }
 }
    
    color /= float(AA*AA);
-   color = pow(color,vec3(.4545));
    FragColor = vec4(color,1.0);
  
 

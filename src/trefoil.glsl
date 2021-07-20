@@ -257,12 +257,12 @@ for(int k = 0; k < aa; ++k) {
     vec3 rd = cm * normalize(vec3(uv.xy,2.));
   
     vec3 render = renderScene(ro,rd);
+    render = pow(render,vec3(.4545));
     color += render;
+
     }
 
 color /= float(aa*aa);
-color = pow(color,vec3(.4545));
-
 FragColor = vec4(color,1.0);
 }
 

@@ -291,7 +291,9 @@ vec3 cam_pos = vec3(5.,12,5.);
 
 vec2 uv = -1. + 2. * gl_FragCoord.xy / resolution.xy; 
 uv.x *= resolution.x / resolution.y; 
+
 vec3 dir = rayCamDir(uv,cam_pos,cam_tar,1.);
+
 color = render(cam_pos,dir);  
 color = pow(color,vec3(.4545));      
 FragColor = vec4(color,1.0);
