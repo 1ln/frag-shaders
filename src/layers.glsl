@@ -227,14 +227,12 @@ for(int k = 0; k < aa; ++k) {
     mat3 cm = camOrthographic(ro,ta,0.);
     vec3 rd = cm * normalize(vec3(uv.xy,2.));   
 
-    vec3 render = renderScene(ro,rd);    
-
-    color += render;
+    vec3 col = renderScene(ro,rd);    
+    col = pow(col,vec3(.4545));
+    color += col;
     }
 
 color /= float(aa*aa);
-color = pow(color,vec3(.4545));
-
 FragColor = vec4(color,1.0);
 }
 
