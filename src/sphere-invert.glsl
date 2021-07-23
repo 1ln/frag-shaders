@@ -10,91 +10,21 @@ uniform float time;
 uniform int seed;
 
 const int steps = 250;
-float eps = 0.00001;
-float dmin = 0.;
-float dmax = 750.;
+float eps = 0.001;
+float dmin = 0.001;
+float dmax = 24;
 const int aa = 2;
  
 const int shsteps = 45; 
 float shblur = 10.0;
 float shmax = 100.; 
 
-const int aosteps = 5;
-
-const int octaves = 5;
-float hurst = 0.5;
-
-const float PI   =  radians(180.0); 
-const float PI2  =  PI * 2.;
+vec3 ta = vec3(0.,0.5,3.);
 
 float h11(float p) {
     uvec2 n = uint(int(p)) * uvec2(uint(int(seed)),2531151992.0);
     uint h = (n.x ^ n.y) * uint(int(seed));
     return float(h) * (1./float(0xffffffffU));
-}
-
-float h21(vec2 p) {
-    uvec2 n = uvec2(ivec2(p)) * uvec2(uint(int(seed)),2531151992.0);
-    uint h = (n.x ^ n.y) * uint(int(seed));
-    return float(h) * (1./float(0xffffffffU));
-}
-
-float n2(vec2 x) { 
-
-    vec2 p = floor(x);
-    vec2 f = fract(x);
-
-    f = f * f * (3.0 - 2.0 * f);  
-    float n = p.x + p.y * 57.;  
-
-    return mix(mix(h11(n+0.),h11(n+1.),f.x),
-               mix(h11(n+57.),h11(n+58.),f.x),f.y);  
-}
-
-float f2(vec2 x) {
-
-    float s = 0.;
-    float h = exp2(-hurst);     
-    float f = 1.;
-    float a = 0.5;
-
-    for(int i = 1; i < octaves; i++) {
- 
-        s += a * n2(f * x);
-        f *= 2.;
-        a *= h;
-    }    
-
-    return s;
-}
-
-vec3 fmCol(float t,vec3 a,vec3 b,vec3 c,vec3 d) {
-    return a + b * cos( (PI*2.0) * (c * t + d));
-}
-
-mat3 rotAxis(vec3 axis,float theta) {
-
-axis = normalize(axis);
-
-    float c = cos(theta);
-    float s = sin(theta);
-
-    float oc = 1.0 - c;
-
-    return mat3(
- 
-        oc * axis.x * axis.x + c, 
-        oc * axis.x * axis.y - axis.z * s,
-        oc * axis.z * axis.x + axis.y * s, 
-    
-        oc * axis.x * axis.y + axis.z * s,
-        oc * axis.y * axis.y + c, 
-        oc * axis.y * axis.z - axis.x * s,
-
-        oc * axis.z * axis.x - axis.y * s,
-        oc * axis.y * axis.z + axis.x * s, 
-        oc * axis.z * axis.z + c);
-
 }
 
 mat3 camEuler(float yaw,float pitch,float roll) {
@@ -129,14 +59,6 @@ float smoi(float d1,float d2,float k) {
 
 }
 
-vec3 twist(vec3 p,float k) {
-    
-    float s = sin(k * p.y);
-    float c = cos(k * p.y);
-    mat2 m = mat2(c,-s,s,c);
-    return vec3(m * p.xz,p.y);
-}
-
 vec2 scene(vec3 p) {
 
     vec2 res = vec2(1.,0.);
@@ -145,6 +67,7 @@ vec2 scene(vec3 p) {
     d = -(length(p)-12.);
 
     res = opu(res,vec2(d,2.)); 
+    res = opu(res,vec2(length(p-ta)-.25,1.));
 
     return res;
 
@@ -172,21 +95,8 @@ vec2 rayScene(vec3 ro,vec3 rd) {
 
 }
 
-float calcAO(vec3 p,vec3 n) {
-
-    float o = 0.;
-    float s = 1.;
-
-    for(int i = 0; i < aosteps; i++) {
- 
-        float h = .01 + .125 * float(i) / 4.; 
-        float d = scene(p + h * n).x;  
-        o += (h-d) * s;
-        s *= .9;
-        if(o > .33) break;
-    
-     }
-     return clamp(1. - 3. * o ,0.0,1.0) * (.5+.5*n.y);   
+float expStep(float x,float k) {
+    return exp((x*k)-k);
 }
 
 float shadow(vec3 ro,vec3 rd) {
@@ -228,7 +138,7 @@ vec3 calcNormal(vec3 p) {
 }
 
 vec3 renderScene(vec3 ro,vec3 rd) {
- 
+
 vec2 d = rayScene(ro, rd);
 
 vec3 col = vec3(1.) * max(0.,rd.y);
@@ -237,9 +147,18 @@ if(d.y >= 0.) {
 
 vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
-vec3 l = normalize(vec3(.25));
+vec3 l = normalize(ta-vec3(.25));
+float radius = dot(rd,l);
+col += col * vec3(.5,.25,.1)*expStep(radius,100.);
+
+
+
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
+
+if(d.y == 1.) {
+    col = vec3(1.,0.,0.);
+}
 
 float amb = clamp(0.5 + 0.5 * n.y,0.,1.);
 
@@ -256,14 +175,14 @@ vec3 linear = vec3(0.);
 dif *= shadow(p,l);
 ref *= shadow(p,r);
 
-linear += dif * vec3(0.5,0.24,0.34);
-linear += amb * vec3(0.01,0.05,0.05);
-linear += ref * vec3(0.1,2.,0.45);
-linear += fre * vec3(0.25,0.005,0.0035);
+linear += .05+ dif * vec3(0.5,0.24,0.34);
+linear += .02+ amb * vec3(0.01,0.05,0.05);
+linear += .01+ ref * vec3(0.1,.05,0.45);
+linear += .01+ fre * vec3(0.25,0.005,0.0035);
 
 col = col * linear;
-col += spe * vec3(0.97); 
-col = mix(col,vec3(0.5),1.-exp(-0.00001 * d.x*d.x*d.x)); 
+col += 3.+ spe * vec3(0.01,.05,.025); 
+col = mix(col,vec3(1.),1.-exp(-0.00001 * d.x*d.x*d.x)); 
 
 }
 
