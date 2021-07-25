@@ -21,6 +21,8 @@ float shmax = 100.;
 
 vec3 ta = vec3(0.,0.5,3.);
 
+const float PI2 = radians(180.)*2.;
+
 float h11(float p) {
     uvec2 n = uint(int(p)) * uvec2(uint(int(seed)),2531151992.0);
     uint h = (n.x ^ n.y) * uint(int(seed));
@@ -174,15 +176,16 @@ vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
 vec3 l = normalize(ta-vec3(.25));
 float radius = dot(rd,l);
+col += col * vec3(.05,.25,.16)*expStep(radius,75.);
 col += col * vec3(.5,.25,.1)*expStep(radius,100.);
-
+col += col * vec3(.25)*expStep(radius,25.);
 
 
 vec3 h = normalize(l - rd);
 vec3 r = reflect(rd,n);
 
 if(d.y == 1.) {
-    col = vec3(1.,0.,0.);
+    col = vec3(.001);
 }
 
 float amb = clamp(0.5 + 0.5 * n.y,0.,1.);
