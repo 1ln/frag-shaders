@@ -27,6 +27,31 @@ float h11(float p) {
     return float(h) * (1./float(0xffffffffU));
 }
 
+mat3 rotAxis(vec3 axis,float theta) {
+
+axis = normalize(axis);
+
+    float c = cos(theta);
+    float s = sin(theta);
+
+    float oc = 1.0 - c;
+
+    return mat3(
+ 
+        oc * axis.x * axis.x + c, 
+        oc * axis.x * axis.y - axis.z * s,
+        oc * axis.z * axis.x + axis.y * s, 
+    
+        oc * axis.x * axis.y + axis.z * s,
+        oc * axis.y * axis.y + c, 
+        oc * axis.y * axis.z - axis.x * s,
+
+        oc * axis.z * axis.x - axis.y * s,
+        oc * axis.y * axis.z + axis.x * s, 
+        oc * axis.z * axis.z + c);
+
+}
+
 mat3 camEuler(float yaw,float pitch,float roll) {
 
      vec3 f = -normalize(vec3(sin(yaw),sin(pitch),cos(yaw)));
