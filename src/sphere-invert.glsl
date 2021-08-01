@@ -10,13 +10,13 @@ uniform float time;
 uniform int seed;
 
 const int steps = 250;
-float eps = 0.00001;
+float eps = 0.001;
 float dmin = 0.001;
 float dmax = 25.;
 const int aa = 2;
  
-const int shsteps = 75;
-float shblur = 125.;
+const int shsteps = 125;
+float shblur = 235.;
 float shmax = 5.;
 
 const float PI2 = radians(180.)*2.;
@@ -162,7 +162,7 @@ if(d.y >= 0.) {
 vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
 
-vec3 l = normalize(vec3(h11(25.),h11(72.),h11(10.))*24.); 
+vec3 l = normalize(vec3(h11(25.)*25.,12.,h11(10.)*24.));
 l.xz *= rot(time*.1);
 
 float rad = dot(rd,l);
@@ -230,7 +230,7 @@ for(int k = 0; k < aa; ++k) {
     vec2 uv = (2. * (gl_FragCoord.xy + o) -
     resolution.xy) / resolution.y; 
 
-    mat3 cm = camEuler(3.1,0.05,h11(100.)*21.);
+    mat3 cm = camEuler(4.1,0.05,h11(100.)*21.);
     vec3 rd = cm * normalize(vec3(uv.xy,2.));
 
     vec3 render = renderScene(ro,rd);   
