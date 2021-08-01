@@ -81,7 +81,7 @@ vec2 scene(vec3 p) {
 
     float d = 0.;    
     d = -(length(p)-24.);
-    res = opu(res,vec2(smou( length(p-vec3(24.,0.,-24.))-18.,d,.7),1.));
+    res = opu(res,vec2(smou( length(p-vec3(24.,0.,24.))-18.,d,.7),1.));
     return res;
 
 }
@@ -122,7 +122,7 @@ float shadow(vec3 ro,vec3 rd) {
         
         float h = scene(ro + rd * t  ).x;
 
-        float y = h * h / (2. * ph);
+        float y = h * h / (8. * ph);
         float d = sqrt(h*h-y*y);         
         res = min(res,shblur * d/max(0.,t-y));
         ph = h;
@@ -154,7 +154,7 @@ vec3 renderScene(vec3 ro,vec3 rd) {
 
 vec2 d = rayScene(ro, rd);
 
-vec3 bgcol = vec3(.5,.1,.1);
+vec3 bgcol = vec3(.7);
 vec3 col = bgcol * max(1.,rd.y);
 
 if(d.y >= 0.) {
@@ -162,11 +162,11 @@ if(d.y >= 0.) {
 vec3 p = ro + rd * d.x;
 vec3 n = calcNormal(p);
 
-vec3 l = normalize(vec3(10.,2.,-5.));
-l.xz *= rot(time*.01);
+vec3 l = normalize(vec3(h11(25.),h11(72.),h11(10.))*24.); 
+l.xz *= rot(time*.1);
 
 float rad = dot(rd,l);
-col += col * vec3(.05,.25,.16)*expStep(rad,75.);
+col += col * vec3(.05,.25,.16)*expStep(rad,h11(111.)*150.);
 col += col * vec3(.5,.25,.1)*expStep(rad,100.);
 col += col * vec3(.25)*expStep(rad,25.);
 col += col * vec3(1.,.5,.5)*expStep(rad,100.);
@@ -203,13 +203,13 @@ vec3 linear = vec3(0.);
 dif *= shadow(p,l);
 spe *= shadow(p,r);
 
-linear += .05+  dif * vec3(0.5);
+linear += dif * vec3(h11(112.),h11(5.),h11(212.))*.5;
 linear += .02+  amb * vec3(.005);
 linear += .005+ fre * vec3(.005,1.,.25);
 linear += .001+ ref * vec3(.001,.01,.01);
 
 col = col * linear;
-col += spe * vec3(.025,1.,.05); 
+col += spe * vec3(h11(12.),h11(225.),h11(101.))*.01; 
 col = mix(col,bgcol,1.-exp(-0.00001 * d.x*d.x*d.x)); 
 
 }
@@ -230,7 +230,7 @@ for(int k = 0; k < aa; ++k) {
     vec2 uv = (2. * (gl_FragCoord.xy + o) -
     resolution.xy) / resolution.y; 
 
-    mat3 cm = camEuler(PI2*3.,0.45,0.);
+    mat3 cm = camEuler(3.1,0.05,h11(100.)*21.);
     vec3 rd = cm * normalize(vec3(uv.xy,2.));
 
     vec3 render = renderScene(ro,rd);   
